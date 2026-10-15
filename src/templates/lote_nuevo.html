@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recibir lote</title>
+</head>
+<body>
+  <h1>Recibir lote</h1>
+
+  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+  {% if mensaje %}<p style="color:green">{{ mensaje }}</p>{% endif %}
+
+  <form method="post" novalidate>
+    <p><label for="codigo">Código</label><br>
+       <input id="codigo" name="codigo" value="{{ datos.get('codigo', '') }}"></p>
+    <p><label for="productor">Productor</label><br>
+       <input id="productor" name="productor" value="{{ datos.get('productor', '') }}"></p>
+    <p><label for="origen">Origen</label><br>
+       <input id="origen" name="origen" value="{{ datos.get('origen', '') }}"></p>
+    <p><label for="fecha_recepcion">Fecha</label><br>
+       <input id="fecha_recepcion" name="fecha_recepcion" type="date" value="{{ datos.get('fecha_recepcion', '') }}"></p>
+    <p><label for="cantidad">Cantidad (kg)</label><br>
+       <input id="cantidad" name="cantidad" value="{{ datos.get('cantidad', '') }}"></p>
+    <button type="submit">Guardar</button>
+  </form>
+</body>
+</html>
