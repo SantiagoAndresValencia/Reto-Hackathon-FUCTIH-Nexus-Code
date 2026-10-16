@@ -108,3 +108,14 @@ def test_salida_cero_no_crea_producto(db_con_cac001):
 def test_salida_mayor_exige_justificacion(db_con_cac001):
     with pytest.raises(ErrorValidacion, match="justificación"):
         registrar_transformacion(db_con_cac001, "operador", "CAC001", {**TRANSFORMACION, "salida": "110"})
+
+
+def test_restaurar_archivo_inexistente_no_toca_la_base(tmp_path, monkeypatch):
+    from src import db as base
+    from src.app import app
+    monkeypatch.setattr(base, "RUTA_DB", tmp_path / "actual.db")
+    falso = tmp_path / "no_existe.db"
+    resultado = app.test_cli_runner().invoke(args=["restaurar", str(falso)])
+    assert resultado.exit_code != 0
+    assert "No existe" in resultado.output
+    assert not falso.exists()

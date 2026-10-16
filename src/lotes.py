@@ -5,7 +5,7 @@ from flask import Blueprint, abort, g, render_template, request
 
 from src.auditoria import registrar
 from src.auth import login_requerido
-from src.calculos import alertas_de, calcular_merma, costo_unitario, margen
+from src.calculos import MARGEN_OBJETIVO, alertas_de, calcular_merma, costo_unitario, margen, precio_sugerido
 from src.db import obtener_db
 from src.validaciones import ErrorValidacion, fecha, numero_no_negativo, numero_positivo, texto
 
@@ -64,6 +64,8 @@ def trazabilidad(db, codigo):
             "merma": calcular_merma(t["entrada"], t["salida"]),
             "costo_unitario": costo,
             "margen": margen(t["precio_venta"], costo),
+            "precio_sugerido": precio_sugerido(costo),
+            "margen_objetivo": MARGEN_OBJETIVO,
         })
     alertas = db.execute("SELECT * FROM alertas WHERE lote_codigo = ? ORDER BY id", (codigo,)).fetchall()
     return {"lote": lote, "etapas": etapas, "alertas": alertas}
@@ -83,7 +85,7 @@ def lista_lotes():
 @bp_lotes.route("/lotes/nuevo", methods=["GET", "POST"])
 @login_requerido
 def lote_nuevo():
-    datos, mensaje, error = request.form, "", ""
+    datos, codigo, mensaje, error = request.form, "", "", ""
 
     if request.method == "POST":
         try:
@@ -93,12 +95,13 @@ def lote_nuevo():
         except ErrorValidacion as e:
             error = str(e)
 
-    return render_template("lote_nuevo.html", datos=datos, mensaje=mensaje, error=error)
+    return render_template("lote_nuevo.html", datos=datos, codigo=codigo, mensaje=mensaje, error=error)
 
 
 @bp_lotes.route("/lotes/<codigo>")
 @login_requerido
 def detalle(codigo):
+    codigo = codigo.upper()
     datos = trazabilidad(obtener_db(), codigo)
     if datos is None:
         abort(404)
@@ -171,6 +174,7 @@ def registrar_transformacion(db, usuario, lote, formulario):
 @bp_lotes.route("/lotes/<codigo>/transformar", methods=["GET", "POST"])
 @login_requerido
 def transformar(codigo):
+    codigo = codigo.upper()
     db = obtener_db()
     inventario = disponible(db, codigo)
     if inventario is None:

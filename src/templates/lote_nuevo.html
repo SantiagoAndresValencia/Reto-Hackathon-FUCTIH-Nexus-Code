@@ -15,7 +15,7 @@
 {% endif %}
 {% if mensaje %}
 <div class="aviso aviso-exito" role="status">{{ icono('ok') }}<div><b>{{ mensaje }}</b>
-  <a href="{{ url_for('lotes.detalle', codigo=mensaje.split()[1]) }}">Ver su trazabilidad</a> · <a href="{{ url_for('lotes.transformar', codigo=mensaje.split()[1]) }}">Registrar una transformación</a></div></div>
+  <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver su trazabilidad</a> · <a href="{{ url_for('lotes.transformar', codigo=codigo) }}">Registrar una transformación</a></div></div>
 {% endif %}
 
 <section class="panel vidrio aparece">
