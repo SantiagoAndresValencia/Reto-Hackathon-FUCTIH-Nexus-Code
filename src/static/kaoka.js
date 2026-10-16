@@ -130,34 +130,77 @@
     });
   });
 
-  // Transformar: avisar mientras se escribe si la entrada supera lo disponible o la merma pasa de 15 %
+  // Transformar: guiar mientras se escribe si la merma, el costo y el precio están dentro de lo ideal
   document.querySelectorAll("[data-transformar]").forEach(function (form) {
     var disp = document.querySelector("[data-disponible]");
     var max = disp ? parseFloat(disp.getAttribute("data-disponible")) : NaN;
+    var umbral = parseFloat(form.getAttribute("data-umbral-merma")) || 15;
+    var objetivo = parseFloat(form.getAttribute("data-margen-objetivo")) || 30;
+    var esAdmin = form.getAttribute("data-admin") === "si";
     var entrada = form.querySelector("#entrada"), salida = form.querySelector("#salida");
-    var ayudaE = document.getElementById("ayuda-entrada"), ayudaS = form.querySelector("[data-merma-ayuda]");
-    var textoE = ayudaE ? ayudaE.textContent : "", textoS = ayudaS ? ayudaS.textContent : "";
-    function num(el) { return parseFloat(String(el.value).replace(",", ".")); }
+    var costo = form.querySelector("#costo_total"), precio = form.querySelector("#precio_venta");
+    var ayudaE = document.getElementById("ayuda-entrada"), textoE = ayudaE ? ayudaE.textContent : "";
+    var usar = form.querySelector("[data-usar-sugerido]"), sugerido = null;
+    function kg(el) { return el && el.value.trim() !== "" ? parseFloat(el.value.replace(",", ".")) : NaN; }
+    function cop(el) { return el && el.value.trim() !== "" ? parseFloat(el.value.replace(/[.\s]/g, "").replace(",", ".")) : NaN; }
+    function miles(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+    function pct(n) { return n.toFixed(1).replace(".", ",") + " %"; }
+    function guia(nombre, estado, html) {
+      var el = form.querySelector('[data-guia="' + nombre + '"]');
+      if (!el) return;
+      el.hidden = !estado;
+      el.className = "guia " + (estado || "");
+      el.innerHTML = estado ? "<span>" + html + "</span>" : "";
+    }
     function revisar() {
-      var e = num(entrada), s = num(salida);
+      var e = kg(entrada), s = kg(salida), c = cop(costo), p = cop(precio);
       if (ayudaE) {
         var excede = !isNaN(e) && !isNaN(max) && e > max;
         ayudaE.textContent = excede ? "Supera lo disponible: solo hay " + String(max).replace(".", ",") + " kg." : textoE;
         ayudaE.style.color = excede ? "var(--bloqueado)" : "";
         entrada.setAttribute("aria-invalid", String(excede));
       }
-      if (ayudaS) {
-        if (!isNaN(e) && !isNaN(s) && e > 0 && s <= e) {
-          var merma = (e - s) / e * 100;
-          ayudaS.textContent = "Merma estimada: " + merma.toFixed(1) + " %" + (merma > 15 ? " · generará una alerta (> 15 %)." : ".");
-          ayudaS.style.color = merma > 15 ? "var(--pendiente)" : "";
-        } else if (!isNaN(e) && !isNaN(s) && s > e) {
-          ayudaS.textContent = "La salida supera la entrada: escriba la justificación.";
-          ayudaS.style.color = "var(--pendiente)";
-        } else { ayudaS.textContent = textoS; ayudaS.style.color = ""; }
+
+      // Merma: la ven ambos roles, igual que la alerta que se generará
+      if (isNaN(e) || isNaN(s) || e <= 0) guia("merma", null);
+      else if (s > e) guia("merma", "cuidado", "La salida supera la entrada: escriba la justificación.");
+      else {
+        var merma = (e - s) / e * 100;
+        guia("merma", merma > umbral ? "fuera" : "ok", "Merma <b>" + pct(merma) + "</b> · " + (merma > umbral
+          ? "fuera de lo ideal (máximo " + umbral + " %): se generará una alerta."
+          : "dentro de lo ideal (máximo " + umbral + " %)."));
       }
+
+      // Costo unitario, margen y precio sugerido: los números solo los ve el administrador
+      var unitario = (!isNaN(c) && !isNaN(s) && s > 0) ? c / s : NaN;
+      sugerido = isNaN(unitario) ? null : unitario / (1 - objetivo / 100);
+      if (!isNaN(c) && s === 0) guia("costo", "fuera", "Con salida de 0 kg no se puede calcular el costo unitario: se generará una alerta.");
+      else if (esAdmin && !isNaN(unitario)) guia("costo", "ok", "Costo unitario <b>" + miles(unitario) + " COP/kg</b> (costo total ÷ salida vendible).");
+      else guia("costo", null);
+
+      if (isNaN(unitario) || isNaN(p) || p <= 0) {
+        guia("precio", esAdmin && sugerido ? "ok" : null,
+          "Precio sugerido <b>" + (sugerido ? miles(sugerido) : "") + " COP/kg</b> para ganar " + objetivo + " % sobre la venta.");
+      } else if (!esAdmin) {
+        guia("precio", p <= unitario ? "fuera" : "ok", p <= unitario
+          ? "El precio no cubre el costo por kg: se generará una alerta." : "El precio cubre el costo por kg.");
+      } else {
+        var m = (p - unitario) / p * 100;
+        var bajo = m < objetivo - 0.05;
+        guia("precio", p <= unitario ? "fuera" : (bajo ? "cuidado" : "ok"), "Margen <b>" + pct(m) + "</b> · " +
+          (p <= unitario ? "el precio no cubre el costo unitario: se generará una alerta."
+            : bajo ? "por debajo del objetivo de " + objetivo + " %." : "cumple el objetivo de " + objetivo + " %.") +
+          " Precio sugerido <b>" + miles(sugerido) + " COP/kg</b>.");
+      }
+      if (usar) usar.hidden = !sugerido || (!isNaN(p) && p >= Math.round(sugerido));
     }
-    [entrada, salida].forEach(function (el) { if (el) el.addEventListener("input", revisar); });
+    if (usar) usar.addEventListener("click", function () {
+      if (!sugerido) return;
+      precio.value = Math.round(sugerido);
+      revisar();
+      precio.focus();
+    });
+    [entrada, salida, costo, precio].forEach(function (el) { if (el) el.addEventListener("input", revisar); });
     revisar();
   });
 })();
