@@ -93,40 +93,8 @@
         motivo.setAttribute("aria-invalid", "true");
         motivo.focus();
         var ayuda = document.getElementById(motivo.getAttribute("aria-describedby"));
-        if (ayuda) {
-          ayuda.textContent = form.getAttribute("data-estado-form") || "Escriba el motivo antes de liberar o bloquear.";
-          ayuda.style.color = "var(--bloqueado)";
-        }
+        if (ayuda) { ayuda.textContent = "Escriba el motivo antes de liberar o bloquear."; ayuda.style.color = "var(--bloqueado)"; }
       }
-    });
-  });
-
-  // Pedido: total en vivo y aviso si se pide más de lo disponible
-  document.querySelectorAll("[data-pedido]").forEach(function (form) {
-    var precio = parseFloat(form.getAttribute("data-precio")), max = parseFloat(form.getAttribute("data-max"));
-    var kilos = form.querySelector("#kilos"), total = form.querySelector("[data-total]");
-    var ayuda = document.getElementById("ayuda-kilos"), textoAyuda = ayuda ? ayuda.textContent : "";
-    var miles = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 });
-    function revisar() {
-      var k = parseFloat(String(kilos.value).replace(",", "."));
-      var valido = !isNaN(k) && k > 0;
-      total.textContent = valido ? miles.format(k * precio) + " COP" : "— COP";
-      var excede = valido && k > max + 0.000001;
-      ayuda.textContent = excede ? "Supera lo disponible: solo hay " + String(max).replace(".", ",") + " kg." : textoAyuda;
-      ayuda.style.color = excede ? "var(--bloqueado)" : "";
-      kilos.setAttribute("aria-invalid", String(excede));
-    }
-    kilos.addEventListener("input", revisar);
-    revisar();
-  });
-
-  // Copiar el enlace privado del pedido
-  document.querySelectorAll("[data-copiar]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var campo = document.getElementById(b.getAttribute("data-copiar"));
-      function listo() { b.textContent = "Copiado"; setTimeout(function () { b.textContent = "Copiar"; }, 1600); }
-      if (navigator.clipboard) navigator.clipboard.writeText(campo.value).then(listo, function () { campo.select(); });
-      else { campo.select(); document.execCommand("copy"); listo(); }
     });
   });
 

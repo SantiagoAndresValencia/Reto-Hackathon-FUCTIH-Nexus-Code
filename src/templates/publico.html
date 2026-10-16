@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% from "_iconos.html" import icono %}
 {% block cuerpo %}
-<div class="publico {% block ancho %}{% endblock %}">
-  <a class="marca" href="{{ url_for('productos.comprador') }}">
+<div class="publico">
+  <a class="marca" href="{{ url_for('productos.consultar') }}">
     <span class="marca-icono">{{ icono('mazorca') }}</span>
     <span class="marca-texto"><b>Kaoka</b><span>Trazabilidad de cacao · Huila</span></span>
   </a>

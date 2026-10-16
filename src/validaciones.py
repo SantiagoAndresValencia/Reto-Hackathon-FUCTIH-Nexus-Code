@@ -1,5 +1,4 @@
 import math
-import re
 from datetime import datetime
 
 
@@ -11,37 +10,6 @@ def texto(valor, campo):
     valor = (valor or "").strip()
     if not valor:
         raise ErrorValidacion(f"El campo «{campo}» es obligatorio.")
-    return valor
-
-
-MUNICIPIOS_HUILA = (
-    "Acevedo", "Agrado", "Aipe", "Algeciras", "Altamira", "Baraya", "Campoalegre", "Colombia",
-    "Elías", "Garzón", "Gigante", "Guadalupe", "Hobo", "Íquira", "Isnos", "La Argentina",
-    "La Plata", "Nátaga", "Neiva", "Oporapa", "Paicol", "Palermo", "Palestina", "Pital",
-    "Pitalito", "Rivera", "Saladoblanco", "San Agustín", "Santa María", "Suaza", "Tarqui",
-    "Tello", "Teruel", "Tesalia", "Timaná", "Villavieja", "Yaguará",
-)
-
-
-def municipio_huila(valor, campo):
-    valor = texto(valor, campo)
-    if valor not in MUNICIPIOS_HUILA:
-        raise ErrorValidacion(f"El campo «{campo}» debe ser un municipio del Huila de la lista.")
-    return valor
-
-
-def telefono(valor, campo):
-    valor = texto(valor, campo)
-    digitos = re.sub(r"\D", "", valor)
-    if not re.fullmatch(r"\+?[\d\s().-]+", valor) or not 7 <= len(digitos) <= 15:
-        raise ErrorValidacion(f"El campo «{campo}» debe ser un teléfono válido (7 a 15 dígitos).")
-    return valor
-
-
-def correo(valor, campo):
-    valor = texto(valor, campo).lower()
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", valor):
-        raise ErrorValidacion(f"El campo «{campo}» debe ser un correo válido, por ejemplo nombre@empresa.co.")
     return valor
 
 

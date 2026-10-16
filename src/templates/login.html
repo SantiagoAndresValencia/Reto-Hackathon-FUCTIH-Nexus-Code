@@ -31,9 +31,12 @@
   </div>
 </section>
 
-<a class="acceso-comprador vidrio aparece" href="{{ url_for('productos.comprador') }}">
-  <span class="producto-icono">{{ icono('producto') }}</span>
-  <span><b>Entrar como comprador</b><small>Vea los productos disponibles y busque uno por su código. No necesita cuenta.</small></span>
-  {{ icono('chev') }}
-</a>
+<section class="panel vidrio aparece" aria-labelledby="t-consulta">
+  <h2 class="panel-titulo" id="t-consulta" style="margin-bottom:12px">¿Es comprador? Consulte un producto</h2>
+  <form class="consulta" method="get" action="{{ url_for('productos.consultar') }}">
+    <label class="sr-only" for="codigo-login">Código del producto</label>
+    <input class="control" id="codigo-login" name="codigo" placeholder="P-CAC001-1" autocapitalize="characters">
+    <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Consultar</button>
+  </form>
+</section>
 {% endblock %}
