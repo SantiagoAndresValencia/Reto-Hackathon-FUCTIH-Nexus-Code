@@ -7,6 +7,7 @@
 </head>
 <body>
   <h1>Recibir lote</h1>
+  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
 
   {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
   {% if mensaje %}<p style="color:green">{{ mensaje }}</p>{% endif %}
