@@ -10,13 +10,14 @@
   <p><a href="{{ url_for('lotes.lote_nuevo') }}">+ Recibir lote</a></p>
 
   <table border="1" cellpadding="6">
-        <tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th><th></th></tr>th></tr>
+    <tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th><th></th></tr>
     {% for l in lotes %}
     <tr>
       <td>{{ l.codigo }}</td>
       <td>{{ l.origen }}</td>
       <td>{{ '%g'|format(l.recibido) }} {{ l.unidad }}</td>
-       <td>{% if l.disponible > 0 %}<a href="{{ url_for('lotes.transformar', codigo=l.codigo) }}">Transformar</a>{% endif %}</td>
+      <td>{{ '%g'|format(l.disponible) }} {{ l.unidad }}</td>
+      <td>{% if l.disponible > 0 %}<a href="{{ url_for('lotes.transformar', codigo=l.codigo) }}">Transformar</a>{% endif %}</td>
     </tr>
     {% else %}
     <tr><td colspan="5">Todavía no hay lotes.</td></tr>
