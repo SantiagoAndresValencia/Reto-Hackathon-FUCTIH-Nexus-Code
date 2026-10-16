@@ -52,7 +52,7 @@
       </div>
       <dl class="datos pedido-datos">
         <div><dt>Producto</dt><dd><a href="{{ url_for('lotes.detalle', codigo=d.lote_codigo) }}">{{ d.nombre }}</a><br><small>{{ d.producto_codigo }}</small></dd></div>
-        <div><dt>Comprador</dt><dd>{{ d.comprador }}<br><small>{{ d.direccion }}</small></dd></div>
+        <div><dt>Comprador</dt><dd>{{ d.comprador }}<br><small>{{ d.direccion }} · {{ d.municipio }}</small></dd></div>
         <div><dt>Contacto</dt><dd>{{ d.telefono }}<br><small>{{ d.correo }}</small></dd></div>
         <div><dt>Cantidad</dt><dd>{{ d.kilos|kg }} {{ d.unidad }}</dd></div>
         <div><dt>Total</dt><dd>{{ d.total|miles }} COP<br><small>{{ d.precio_kg|miles }} COP/{{ d.unidad }}</small></dd></div>

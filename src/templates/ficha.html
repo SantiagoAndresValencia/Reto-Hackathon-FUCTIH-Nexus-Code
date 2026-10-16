@@ -55,9 +55,17 @@
       <input class="control" id="comprador" name="comprador" value="{{ form.get('comprador', '') }}" autocomplete="organization" required>
     </div>
     <div class="campo">
+      <label for="municipio">Municipio</label>
+      <select class="control" id="municipio" name="municipio" autocomplete="address-level2" aria-describedby="ayuda-municipio" required>
+        <option value="" disabled {{ 'selected' if not form.get('municipio') }}>Seleccione un municipio</option>
+        {% for m in MUNICIPIOS_HUILA %}<option {{ 'selected' if m == form.get('municipio') }}>{{ m }}</option>{% endfor %}
+      </select>
+      <span class="ayuda" id="ayuda-municipio">Municipios del Huila, Colombia.</span>
+    </div>
+    <div class="campo">
       <label for="direccion">Dirección de entrega</label>
       <input class="control" id="direccion" name="direccion" value="{{ form.get('direccion', '') }}" autocomplete="street-address"
-             placeholder="Calle, número, barrio y municipio" required>
+             placeholder="Calle, número y barrio o vereda" required>
     </div>
     <div class="campo">
       <label for="telefono">Teléfono</label>

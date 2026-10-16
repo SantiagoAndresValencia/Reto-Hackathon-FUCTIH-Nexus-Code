@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     token           TEXT NOT NULL UNIQUE CHECK (length(token) >= 16), -- enlace privado del comprador
     producto_codigo TEXT NOT NULL REFERENCES productos(codigo),
     comprador       TEXT NOT NULL CHECK (length(trim(comprador)) > 0),
+    municipio       TEXT NOT NULL CHECK (length(trim(municipio)) > 0),
     direccion       TEXT NOT NULL CHECK (length(trim(direccion)) > 0),
     telefono        TEXT NOT NULL CHECK (length(trim(telefono)) > 0),
     correo          TEXT NOT NULL CHECK (correo LIKE '%_@_%._%'),

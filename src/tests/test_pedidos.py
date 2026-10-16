@@ -1,6 +1,6 @@
 from conftest import ingresar, transformar
 
-PEDIDO = {"kilos": "10", "comprador": "Tienda La Ceiba", "direccion": "Calle 8 # 5-20, Neiva",
+PEDIDO = {"kilos": "10", "comprador": "Tienda La Ceiba", "municipio": "Garzón", "direccion": "Calle 8 # 5-20",
           "telefono": "310 555 0101", "correo": "ceiba@ejemplo.co"}
 
 
@@ -95,12 +95,13 @@ def test_catalogo_muestra_disponible_y_no_expone_compradores(cliente):
 
 def test_pedido_exige_direccion_telefono_y_correo_validos(cliente):
     liberar(cliente)
-    for campo, valor, mensaje in (("direccion", "", "Dirección de entrega"), ("telefono", "abc", "teléfono válido"),
+    for campo, valor, mensaje in (("municipio", "Bogotá", "municipio del Huila"), ("municipio", "", "Municipio"),
+                                  ("direccion", "", "Dirección de entrega"), ("telefono", "abc", "teléfono válido"),
                                   ("correo", "ceiba.co", "correo válido")):
         respuesta = pedir(cliente, **{campo: valor})
         assert respuesta.status_code == 400 and mensaje in respuesta.get_data(as_text=True)
     pagina = cliente.get(pedir(cliente).headers["Location"]).get_data(as_text=True)
-    assert "Calle 8 # 5-20, Neiva" in pagina and "310 555 0101" in pagina and "ceiba@ejemplo.co" in pagina
+    assert "Garzón, Huila" in pagina and "Calle 8 # 5-20" in pagina and "310 555 0101" in pagina and "ceiba@ejemplo.co" in pagina
 
 
 def test_seguir_pedido_con_el_telefono(cliente):
@@ -115,6 +116,7 @@ def test_migra_pedidos_con_contacto_unico(tmp_path, monkeypatch):
     ruta = tmp_path / "vieja.db"
     conn = sqlite3.connect(ruta)
     conn.executescript(db.RUTA_SCHEMA.read_text(encoding="utf-8").replace(
+        "    municipio       TEXT NOT NULL CHECK (length(trim(municipio)) > 0),\n"
         "    direccion       TEXT NOT NULL CHECK (length(trim(direccion)) > 0),\n"
         "    telefono        TEXT NOT NULL CHECK (length(trim(telefono)) > 0),\n"
         "    correo          TEXT NOT NULL CHECK (correo LIKE '%_@_%._%'),\n",
@@ -132,7 +134,26 @@ def test_migra_pedidos_con_contacto_unico(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "RUTA_DB", ruta)
     db.crear_tablas()
     conn = sqlite3.connect(ruta)
-    assert conn.execute("SELECT comprador, correo, telefono, direccion FROM pedidos").fetchone() == \
-        ("Ceiba", "ceiba@ejemplo.co", "Sin registrar", "Sin registrar")
+    assert conn.execute("SELECT comprador, correo, telefono, municipio, direccion FROM pedidos").fetchone() == \
+        ("Ceiba", "ceiba@ejemplo.co", "Sin registrar", "Sin registrar", "Sin registrar")
     assert conn.execute("SELECT disponible FROM v_producto_disponible").fetchone() == (75,)
     assert conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE 'trg_pedidos_%'").fetchone() == (4,)
+
+
+def test_agrega_municipio_a_pedidos_existentes(tmp_path, monkeypatch):
+    import sqlite3
+    from src import db
+    ruta = tmp_path / "sin_municipio.db"
+    conn = sqlite3.connect(ruta)
+    conn.executescript(db.RUTA_SCHEMA.read_text(encoding="utf-8").replace(
+        "    municipio       TEXT NOT NULL CHECK (length(trim(municipio)) > 0),\n", ""))
+    conn.close()
+    monkeypatch.setattr(db, "RUTA_DB", ruta)
+    db.crear_tablas()
+    conn = sqlite3.connect(ruta)
+    assert "municipio" in {c[1] for c in conn.execute("PRAGMA table_info(pedidos)")}
+
+
+def test_lista_tiene_los_37_municipios_del_huila():
+    from src.validaciones import MUNICIPIOS_HUILA
+    assert len(set(MUNICIPIOS_HUILA)) == 37 and {"Neiva", "Pitalito", "San Agustín", "Íquira"} <= set(MUNICIPIOS_HUILA)

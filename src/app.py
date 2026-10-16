@@ -10,7 +10,7 @@ from src.db import cerrar_db, crear_tablas, obtener_db
 from src.lotes import bp_lotes, crear_lote
 from src.pedidos import bp_pedidos
 from src.productos import bp_productos
-from src.validaciones import ErrorValidacion
+from src.validaciones import MUNICIPIOS_HUILA, ErrorValidacion
 
 USUARIOS_DEMO = [("operador", "operador123", "operador"), ("admin", "admin123", "admin")]
 LOTES_DEMO = [
@@ -22,6 +22,7 @@ LOTES_DEMO = [
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("CACAO_SECRET", "solo-para-desarrollo")
 app.teardown_appcontext(cerrar_db)
+app.jinja_env.globals["MUNICIPIOS_HUILA"] = MUNICIPIOS_HUILA
 app.register_blueprint(bp_auth)
 app.register_blueprint(bp_lotes)
 app.register_blueprint(bp_productos)

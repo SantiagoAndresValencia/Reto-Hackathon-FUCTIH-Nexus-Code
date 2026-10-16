@@ -13,11 +13,14 @@ def crear_tablas():
     esquema = RUTA_SCHEMA.read_text(encoding="utf-8")
     conn.executescript(esquema)
     _migrar_contacto_de_pedidos(conn, esquema)
+    if "municipio" not in {c[1] for c in conn.execute("PRAGMA table_info(pedidos)")}:
+        conn.execute("ALTER TABLE pedidos ADD COLUMN municipio TEXT NOT NULL DEFAULT 'Sin registrar'")
+        conn.commit()
     conn.close()
 
 
 def _migrar_contacto_de_pedidos(conn, esquema):
-    """Bases creadas con la primera versión de pedidos: 'contacto' pasa a teléfono y correo, y se agrega dirección."""
+    """Bases creadas con la primera versión de pedidos: 'contacto' pasa a teléfono y correo, y se agregan municipio y dirección."""
     if "contacto" not in {c[1] for c in conn.execute("PRAGMA table_info(pedidos)")}:
         return
     conn.row_factory = sqlite3.Row
@@ -37,9 +40,9 @@ def _migrar_contacto_de_pedidos(conn, esquema):
         for f in filas:
             es_correo = "@" in f["contacto"]
             conn.execute(
-                "INSERT INTO pedidos (id, token, producto_codigo, comprador, direccion, telefono, correo, kilos, "
-                "precio_kg, estado, motivo_estado, creado_en, actualizado_en) "
-                "VALUES (?, ?, ?, ?, 'Sin registrar', ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO pedidos (id, token, producto_codigo, comprador, municipio, direccion, telefono, correo, "
+                "kilos, precio_kg, estado, motivo_estado, creado_en, actualizado_en) "
+                "VALUES (?, ?, ?, ?, 'Sin registrar', 'Sin registrar', ?, ?, ?, ?, ?, ?, ?, ?)",
                 (f["id"], f["token"], f["producto_codigo"], f["comprador"],
                  "Sin registrar" if es_correo else f["contacto"],
                  f["contacto"] if es_correo else "sin-registrar@kaoka.local",

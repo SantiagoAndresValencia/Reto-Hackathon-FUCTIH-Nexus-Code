@@ -14,6 +14,22 @@ def texto(valor, campo):
     return valor
 
 
+MUNICIPIOS_HUILA = (
+    "Acevedo", "Agrado", "Aipe", "Algeciras", "Altamira", "Baraya", "Campoalegre", "Colombia",
+    "Elías", "Garzón", "Gigante", "Guadalupe", "Hobo", "Íquira", "Isnos", "La Argentina",
+    "La Plata", "Nátaga", "Neiva", "Oporapa", "Paicol", "Palermo", "Palestina", "Pital",
+    "Pitalito", "Rivera", "Saladoblanco", "San Agustín", "Santa María", "Suaza", "Tarqui",
+    "Tello", "Teruel", "Tesalia", "Timaná", "Villavieja", "Yaguará",
+)
+
+
+def municipio_huila(valor, campo):
+    valor = texto(valor, campo)
+    if valor not in MUNICIPIOS_HUILA:
+        raise ErrorValidacion(f"El campo «{campo}» debe ser un municipio del Huila de la lista.")
+    return valor
+
+
 def telefono(valor, campo):
     valor = texto(valor, campo)
     digitos = re.sub(r"\D", "", valor)

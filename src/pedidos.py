@@ -8,7 +8,7 @@ from src.auditoria import registrar
 from src.auth import PermisoDenegado, exigir_admin, login_requerido, solo_admin
 from src.db import obtener_db
 from src.productos import disponible_producto, ficha_publica
-from src.validaciones import ErrorValidacion, correo, numero_positivo, telefono, texto
+from src.validaciones import ErrorValidacion, correo, municipio_huila, numero_positivo, telefono, texto
 
 bp_pedidos = Blueprint("pedidos", __name__)
 
@@ -33,6 +33,7 @@ def crear_pedido(db, codigo_producto, datos):
         raise ErrorValidacion("Este producto no está disponible para la venta.")
     kilos = numero_positivo(datos.get("kilos"), "Kilos")
     comprador = texto(datos.get("comprador"), "Nombre o empresa")
+    municipio = municipio_huila(datos.get("municipio"), "Municipio")
     direccion = texto(datos.get("direccion"), "Dirección de entrega")
     tel = telefono(datos.get("telefono"), "Teléfono")
     email = correo(datos.get("correo"), "Correo")
@@ -44,9 +45,10 @@ def crear_pedido(db, codigo_producto, datos):
     try:
         with db:
             cursor = db.execute(
-                "INSERT INTO pedidos (token, producto_codigo, comprador, direccion, telefono, correo, kilos, precio_kg) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (token, producto["codigo_producto"], comprador, direccion, tel, email, kilos, producto["precio_venta"]))
+                "INSERT INTO pedidos (token, producto_codigo, comprador, municipio, direccion, telefono, correo, kilos, precio_kg) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (token, producto["codigo_producto"], comprador, municipio, direccion, tel, email, kilos,
+                 producto["precio_venta"]))
             numero = f"PED-{cursor.lastrowid:04d}"
             registrar(db, "comprador", "crear pedido", "pedido", numero, "kilos", "", f"{kilos:g}")
     except sqlite3.IntegrityError as e:
