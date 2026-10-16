@@ -31,11 +31,16 @@ def cambiar_estado(db, usuario, rol, codigo, estado, motivo):
 
 def ficha_publica(db, codigo):
     return db.execute(
-        "SELECT codigo_producto, nombre, cantidad, unidad, estado, en_venta, lote_codigo, "
+        "SELECT codigo_producto, nombre, cantidad, unidad, precio_venta, estado, en_venta, lote_codigo, "
         "origen, fecha_recepcion, etapa, fecha_transformacion "
         "FROM v_ficha_publica WHERE codigo_producto = ?",
         (codigo.upper(),),
     ).fetchone()
+
+
+def disponible_producto(db, codigo):
+    fila = db.execute("SELECT disponible FROM v_producto_disponible WHERE codigo = ?", (codigo,)).fetchone()
+    return fila["disponible"] if fila else 0
 
 
 def resumen_csv(db, origen="", estado=""):
@@ -72,20 +77,52 @@ def estado(codigo):
     return redirect(url_for("lotes.detalle", codigo=lote))
 
 
+def catalogo(db, origen="", etapa=""):
+    """Productos liberados para la venta, solo con datos públicos."""
+    consulta = ("SELECT f.codigo_producto, f.nombre, f.cantidad, f.unidad, f.precio_venta, f.lote_codigo, "
+                "f.origen, f.etapa, f.fecha_transformacion, d.disponible FROM v_ficha_publica f "
+                "JOIN v_producto_disponible d ON d.codigo = f.codigo_producto WHERE f.en_venta = 1")
+    parametros = []
+    if origen:
+        consulta += " AND f.origen = ?"
+        parametros.append(origen)
+    if etapa:
+        consulta += " AND f.etapa = ?"
+        parametros.append(etapa)
+    return db.execute(consulta + " ORDER BY d.disponible <= 0, f.fecha_transformacion DESC, f.codigo_producto", parametros).fetchall()
+
+
+@bp_productos.route("/comprador")
+def comprador():
+    db = obtener_db()
+    codigo = request.args.get("codigo", "").strip().upper()
+    error = None
+    if codigo:
+        if ficha_publica(db, codigo):
+            return redirect(url_for("productos.ficha", codigo=codigo))
+        error = f"No encontramos el producto {codigo}. Revise el código impreso en el empaque."
+    origen = request.args.get("origen", "")
+    etapa = request.args.get("etapa", "")
+    disponibles = db.execute("SELECT DISTINCT origen, etapa FROM v_ficha_publica WHERE en_venta = 1").fetchall()
+    return render_template("comprador.html", productos=catalogo(db, origen, etapa),
+                           origenes=sorted({d["origen"] for d in disponibles}),
+                           etapas=sorted({d["etapa"] for d in disponibles}),
+                           origen=origen, etapa=etapa, codigo=codigo, error=error,
+                           pedido=request.args.get("pedido", ""), error_pedido=request.args.get("error_pedido"))
+
+
 @bp_productos.route("/consultar")
 def consultar():
-    codigo = request.args.get("codigo", "").strip().upper()
-    if codigo:
-        return redirect(url_for("productos.ficha", codigo=codigo))
-    return render_template("consultar.html")
+    return redirect(url_for("productos.comprador", **request.args))
 
 
 @bp_productos.route("/ficha/<codigo>")
 def ficha(codigo):
-    datos = ficha_publica(obtener_db(), codigo)
+    db = obtener_db()
+    datos = ficha_publica(db, codigo)
     if datos is None:
         abort(404)
-    return render_template("ficha.html", f=datos)
+    return render_template("ficha.html", f=datos, disponible=disponible_producto(db, datos["codigo_producto"]), form={})
 
 
 @bp_productos.route("/admin/exportar.csv")

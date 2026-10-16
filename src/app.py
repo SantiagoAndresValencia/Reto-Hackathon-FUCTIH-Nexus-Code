@@ -9,8 +9,9 @@ from src import respaldo
 from src.auth import bp_auth
 from src.db import cerrar_db, crear_tablas, obtener_db
 from src.lotes import bp_lotes, crear_lote
+from src.pedidos import bp_pedidos
 from src.productos import bp_productos
-from src.validaciones import ErrorValidacion
+from src.validaciones import MUNICIPIOS_HUILA, ErrorValidacion
 
 USUARIOS_DEMO = [("operador", "operador123", "operador"), ("admin", "admin123", "admin")]
 LOTES_DEMO = [
@@ -24,9 +25,11 @@ app.config["SECRET_KEY"] = os.environ.get("CACAO_SECRET") or secrets.token_hex(3
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.teardown_appcontext(cerrar_db)
+app.jinja_env.globals["MUNICIPIOS_HUILA"] = MUNICIPIOS_HUILA
 app.register_blueprint(bp_auth)
 app.register_blueprint(bp_lotes)
 app.register_blueprint(bp_productos)
+app.register_blueprint(bp_pedidos)
 respaldo.registrar_comandos(app)
 crear_tablas()
 
