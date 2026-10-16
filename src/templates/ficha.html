@@ -1,27 +1,24 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ f.nombre }}</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block titulo %}{{ f.nombre }} · Ficha del producto{% endblock %}
+{% block contenido %}
+<section class="tarjeta estrecha ficha">
+  <p class="nota">Ficha pública del producto</p>
   <h1>{{ f.nombre }}</h1>
   {% if f.en_venta %}
-    <p style="color:green"><strong>Disponible para la venta</strong></p>
+    <p class="estado estado-liberado">Disponible para la venta</p>
   {% elif f.estado == 'bloqueado' %}
-    <p style="color:red"><strong>Producto bloqueado: no disponible para la venta</strong></p>
+    <p class="estado estado-bloqueado" role="alert">Producto bloqueado: no disponible para la venta</p>
   {% else %}
-    <p><strong>En revisión: aún no disponible</strong></p>
+    <p class="estado estado-pendiente">En revisión: aún no disponible</p>
   {% endif %}
-  <ul>
-    <li>Código: {{ f.codigo_producto }}</li>
-    <li>Lote de origen: {{ f.lote_codigo }}</li>
-    <li>Municipio: {{ f.origen }}, Huila</li>
-    <li>Recepción del cacao: {{ f.fecha_recepcion }}</li>
-    <li>Transformación: {{ f.etapa }} ({{ f.fecha_transformacion }})</li>
-    <li>Cantidad: {{ '%g'|format(f.cantidad) }} {{ f.unidad }}</li>
-  </ul>
-  <p><small>Datos de una asociación simulada.</small></p>
-</body>
-</html>
+  <dl class="datos">
+    <dt>Código</dt><dd>{{ f.codigo_producto }}</dd>
+    <dt>Lote de origen</dt><dd>{{ f.lote_codigo }}</dd>
+    <dt>Municipio</dt><dd>{{ f.origen }}, Huila</dd>
+    <dt>Recepción del cacao</dt><dd>{{ f.fecha_recepcion }}</dd>
+    <dt>Transformación</dt><dd>{{ f.etapa }} ({{ f.fecha_transformacion }})</dd>
+    <dt>Cantidad</dt><dd>{{ '%g'|format(f.cantidad) }} {{ f.unidad }}</dd>
+  </dl>
+  <p class="nota">Datos de una asociación simulada para demostración.</p>
+</section>
+{% endblock %}

@@ -1,26 +1,20 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lotes</title>
-</head>
-<body>
-  <p>{{ session.usuario }} ({{ session.rol }}) · <a href="{{ url_for('auth.logout') }}">Salir</a>
-    {% if session.rol == 'admin' %}
-      · <a href="{{ url_for('auth.auditoria') }}">Auditoría</a>
-      · <a href="{{ url_for('productos.exportar', origen=origen, estado=estado) }}">Exportar CSV</a>
-    {% endif %}
-  </p>
+{% extends "base.html" %}
+{% block titulo %}Lotes · Cacao con Historia{% endblock %}
+{% block contenido %}
+<div class="encabezado">
   <h1>Lotes recibidos</h1>
-  <p><a href="{{ url_for('lotes.lote_nuevo') }}">+ Recibir lote</a></p>
+  <a class="boton" href="{{ url_for('lotes.lote_nuevo') }}">+ Recibir lote</a>
+</div>
 
-  <form method="get">
+<form class="filtros" method="get" aria-label="Filtrar lotes">
+  <div>
     <label for="origen">Origen</label>
     <select id="origen" name="origen">
       <option value="">Todos</option>
       {% for o in origenes %}<option {{ 'selected' if o == origen }}>{{ o }}</option>{% endfor %}
     </select>
+  </div>
+  <div>
     <label for="estado">Estado</label>
     <select id="estado" name="estado">
       <option value="">Todos</option>
@@ -28,23 +22,30 @@
       <option {{ 'selected' if e == estado }}>{{ e }}</option>
       {% endfor %}
     </select>
-    <button type="submit">Filtrar</button>
-  </form>
+  </div>
+  <button type="submit" class="secundario">Filtrar</button>
+  {% if session.rol == 'admin' %}
+  <a class="boton secundario" href="{{ url_for('productos.exportar', origen=origen, estado=estado) }}">Exportar CSV</a>
+  {% endif %}
+</form>
 
-  <table border="1" cellpadding="6">
-    <tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th><th>Estado</th><th></th></tr>
+<div class="tabla-scroll">
+  <table>
+    <thead><tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
     {% for l in lotes %}
     <tr>
-      <td><a href="{{ url_for('lotes.detalle', codigo=l.codigo) }}">{{ l.codigo }}</a></td>
+      <td><a href="{{ url_for('lotes.detalle', codigo=l.codigo) }}"><strong>{{ l.codigo }}</strong></a></td>
       <td>{{ l.origen }}</td>
       <td>{{ '%g'|format(l.recibido) }} {{ l.unidad }}</td>
       <td>{{ '%g'|format(l.disponible) }} {{ l.unidad }}</td>
-      <td>{{ l.estados }}</td>
+      <td>{% for e in l.estados.split(',') %}<span class="estado estado-{{ e|replace(' ', '-') }}">{{ e }}</span> {% endfor %}</td>
       <td>{% if l.disponible > 0 %}<a href="{{ url_for('lotes.transformar', codigo=l.codigo) }}">Transformar</a>{% endif %}</td>
     </tr>
     {% else %}
     <tr><td colspan="6">No hay lotes con esos filtros.</td></tr>
     {% endfor %}
+    </tbody>
   </table>
-</body>
-</html>
+</div>
+{% endblock %}

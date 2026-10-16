@@ -1,17 +1,15 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ingresar</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block titulo %}Ingresar · Cacao con Historia{% endblock %}
+{% block contenido %}
+<section class="tarjeta estrecha">
   <h1>Ingresar</h1>
-  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
   <form method="post">
-    <p><label for="usuario">Usuario</label><br><input id="usuario" name="usuario" autofocus></p>
-    <p><label for="clave">Contraseña</label><br><input id="clave" name="clave" type="password"></p>
+    <label for="usuario">Usuario</label>
+    <input id="usuario" name="usuario" autocomplete="username" required autofocus>
+    <label for="clave">Contraseña</label>
+    <input id="clave" name="clave" type="password" autocomplete="current-password" required>
     <button type="submit">Ingresar</button>
   </form>
-</body>
-</html>
+  <p class="nota">Demostración: operador / operador123 · admin / admin123</p>
+</section>
+{% endblock %}

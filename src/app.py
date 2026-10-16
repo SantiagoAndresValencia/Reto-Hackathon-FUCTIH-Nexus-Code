@@ -28,6 +28,11 @@ respaldo.registrar_comandos(app)
 crear_tablas()
 
 
+@app.template_filter("cop")
+def formato_cop(valor):
+    return f"{valor:,.0f}".replace(",", ".")
+
+
 @app.route("/")
 def inicio():
     return redirect(url_for("lotes.lista_lotes"))
@@ -35,12 +40,12 @@ def inicio():
 
 @app.errorhandler(403)
 def prohibido(_error):
-    return render_template("error.html", mensaje="Acción denegada: su rol no tiene permiso."), 403
+    return render_template("error.html", mensaje_error="Acción denegada: su rol no tiene permiso."), 403
 
 
 @app.errorhandler(404)
 def no_encontrado(_error):
-    return render_template("error.html", mensaje="La página o el registro no existe."), 404
+    return render_template("error.html", mensaje_error="La página o el registro no existe."), 404
 
 
 @app.cli.command("cargar-demo")

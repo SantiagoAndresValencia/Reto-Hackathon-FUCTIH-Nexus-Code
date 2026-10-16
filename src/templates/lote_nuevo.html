@@ -1,29 +1,32 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Recibir lote</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block titulo %}Recibir lote · Cacao con Historia{% endblock %}
+{% block contenido %}
+<section class="tarjeta">
   <h1>Recibir lote</h1>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
-
-  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-  {% if mensaje %}<p style="color:green">{{ mensaje }}</p>{% endif %}
-
   <form method="post" novalidate>
-    <p><label for="codigo">Código</label><br>
-       <input id="codigo" name="codigo" value="{{ datos.get('codigo', '') }}"></p>
-    <p><label for="productor">Productor</label><br>
-       <input id="productor" name="productor" value="{{ datos.get('productor', '') }}"></p>
-    <p><label for="origen">Origen</label><br>
-       <input id="origen" name="origen" value="{{ datos.get('origen', '') }}"></p>
-    <p><label for="fecha_recepcion">Fecha</label><br>
-       <input id="fecha_recepcion" name="fecha_recepcion" type="date" value="{{ datos.get('fecha_recepcion', '') }}"></p>
-    <p><label for="cantidad">Cantidad (kg)</label><br>
-       <input id="cantidad" name="cantidad" value="{{ datos.get('cantidad', '') }}"></p>
-    <button type="submit">Guardar</button>
+    <div class="campos">
+      <div>
+        <label for="codigo">Código del lote</label>
+        <input id="codigo" name="codigo" value="{{ datos.get('codigo', '') }}" placeholder="CAC004">
+      </div>
+      <div>
+        <label for="productor">Productor</label>
+        <input id="productor" name="productor" value="{{ datos.get('productor', '') }}">
+      </div>
+      <div>
+        <label for="origen">Origen (municipio)</label>
+        <input id="origen" name="origen" value="{{ datos.get('origen', '') }}" placeholder="Rivera">
+      </div>
+      <div>
+        <label for="fecha_recepcion">Fecha de recepción</label>
+        <input id="fecha_recepcion" name="fecha_recepcion" type="date" value="{{ datos.get('fecha_recepcion', '') }}">
+      </div>
+      <div>
+        <label for="cantidad">Cantidad (kg de cacao seco)</label>
+        <input id="cantidad" name="cantidad" inputmode="decimal" value="{{ datos.get('cantidad', '') }}">
+      </div>
+    </div>
+    <button type="submit">Guardar lote</button>
   </form>
-</body>
-</html>
+</section>
+{% endblock %}
