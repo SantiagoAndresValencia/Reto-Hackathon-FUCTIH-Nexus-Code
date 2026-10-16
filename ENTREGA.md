@@ -14,14 +14,14 @@
 ## Acceso para el jurado
 
 ```bash
-git clone https://github.com/SantiagoAndresValencia/Reto-Hackathon-FUCTIH-Nexus-Code.git
-cd Reto-Hackathon-FUCTIH-Nexus-Code
+git clone https://github.com/SantiagoAndresValencia/Reto-Hackathon-FUCTIH-Nexus-Code.git prueba-jurado
+cd prueba-jurado
 git checkout entrega-final
-python -m venv .venv && .venv\Scripts\activate       
-pip install -r requirements.txt
-python -m flask --app src/app cargar-demo
-python -m pytest -v
-python -m flask --app src/app run                              
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m flask --app src/app cargar-demo
+.venv\Scripts\python.exe -m pytest -v
+.venv\Scripts\python.exe -m flask --app src/app run
 ```
 
 Usuarios: `operador / operador123` (operador) · `admin / admin123` (administrador).
