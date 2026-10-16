@@ -137,7 +137,7 @@ def test_migra_pedidos_con_contacto_unico(tmp_path, monkeypatch):
     assert conn.execute("SELECT comprador, correo, telefono, municipio, direccion FROM pedidos").fetchone() == \
         ("Ceiba", "ceiba@ejemplo.co", "Sin registrar", "Sin registrar", "Sin registrar")
     assert conn.execute("SELECT disponible FROM v_producto_disponible").fetchone() == (75,)
-    assert conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE 'trg_pedidos_%'").fetchone() == (5,)
+    assert conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE name LIKE 'trg_pedidos_%'").fetchone() == (4,)
 
 
 def test_agrega_municipio_a_pedidos_existentes(tmp_path, monkeypatch):

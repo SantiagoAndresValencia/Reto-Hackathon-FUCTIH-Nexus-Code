@@ -16,31 +16,7 @@ def crear_tablas():
     if "municipio" not in {c[1] for c in conn.execute("PRAGMA table_info(pedidos)")}:
         conn.execute("ALTER TABLE pedidos ADD COLUMN municipio TEXT NOT NULL DEFAULT 'Sin registrar'")
         conn.commit()
-    _migrar_estados_de_pedidos(conn, esquema)
     conn.close()
-
-
-def _migrar_estados_de_pedidos(conn, esquema):
-    """Bases anteriores a los estados enviado y entregado: se rehace la tabla con la regla nueva y se copian los pedidos."""
-    sql = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'pedidos'").fetchone()[0]
-    if "'enviado'" in sql:
-        return
-    columnas = [c[1] for c in conn.execute("PRAGMA table_info(pedidos)")]
-    filas = conn.execute(f"SELECT {', '.join(columnas)} FROM pedidos").fetchall()
-    conn.executescript("""
-        DROP VIEW IF EXISTS v_producto_disponible;
-        DROP TRIGGER IF EXISTS trg_pedidos_solo_liberados;
-        DROP TRIGGER IF EXISTS trg_pedidos_sin_sobreventa;
-        DROP TRIGGER IF EXISTS trg_pedidos_estado_final;
-        DROP TRIGGER IF EXISTS trg_pedidos_transicion;
-        DROP TRIGGER IF EXISTS trg_pedidos_no_borrar;
-        DROP TABLE pedidos;
-    """)
-    conn.executescript(esquema)
-    conn.executescript("DROP TRIGGER trg_pedidos_solo_liberados; DROP TRIGGER trg_pedidos_sin_sobreventa;")
-    with conn:
-        conn.executemany(f"INSERT INTO pedidos ({', '.join(columnas)}) VALUES ({', '.join('?' * len(columnas))})", filas)
-    conn.executescript(esquema)
 
 
 def _migrar_contacto_de_pedidos(conn, esquema):

@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     kilos           REAL NOT NULL CHECK (kilos > 0),
     precio_kg       REAL NOT NULL CHECK (precio_kg >= 0),          -- precio congelado al pedir
     estado          TEXT NOT NULL DEFAULT 'pendiente'
-                    CHECK (estado IN ('pendiente', 'aprobado', 'enviado', 'entregado', 'rechazado', 'cancelado')),
+                    CHECK (estado IN ('pendiente', 'aprobado', 'rechazado', 'cancelado')),
     motivo_estado   TEXT,
     creado_en       TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     actualizado_en  TEXT,
@@ -140,15 +140,15 @@ FROM productos p
 JOIN lotes l            ON l.codigo = p.lote_codigo
 JOIN transformaciones t ON t.id     = p.transformacion_id;
 
--- Kilos de cada producto que aún se pueden pedir: lo producido menos lo apartado, enviado o entregado
+-- Kilos de cada producto que aún se pueden pedir: lo producido menos lo apartado por pedidos activos
 CREATE VIEW IF NOT EXISTS v_producto_disponible AS
 SELECT
     p.codigo,
     p.cantidad,
     COALESCE((SELECT SUM(d.kilos) FROM pedidos d
-              WHERE d.producto_codigo = p.codigo AND d.estado IN ('pendiente', 'aprobado', 'enviado', 'entregado')), 0) AS apartado,
+              WHERE d.producto_codigo = p.codigo AND d.estado IN ('pendiente', 'aprobado')), 0) AS apartado,
     p.cantidad - COALESCE((SELECT SUM(d.kilos) FROM pedidos d
-              WHERE d.producto_codigo = p.codigo AND d.estado IN ('pendiente', 'aprobado', 'enviado', 'entregado')), 0) AS disponible
+              WHERE d.producto_codigo = p.codigo AND d.estado IN ('pendiente', 'aprobado')), 0) AS disponible
 FROM productos p;
 
 CREATE TRIGGER IF NOT EXISTS trg_pedidos_solo_liberados
@@ -165,25 +165,13 @@ BEGIN
     SELECT RAISE(ABORT, 'INVENTARIO_INSUFICIENTE');
 END;
 
--- Entregado, rechazado y cancelado son finales: no se reabren ni cambian de producto o cantidad
+-- Rechazado y cancelado son finales: no se reabren ni cambian de producto o cantidad
 CREATE TRIGGER IF NOT EXISTS trg_pedidos_estado_final
 BEFORE UPDATE ON pedidos
-WHEN OLD.estado IN ('entregado', 'rechazado', 'cancelado')
+WHEN OLD.estado IN ('rechazado', 'cancelado')
   OR NEW.kilos IS NOT OLD.kilos OR NEW.producto_codigo IS NOT OLD.producto_codigo OR NEW.precio_kg IS NOT OLD.precio_kg
 BEGIN
     SELECT RAISE(ABORT, 'PEDIDO_CERRADO');
-END;
-
--- Ciclo del pedido: pendiente -> aprobado -> enviado -> entregado; se rechaza o cancela antes del envío
-CREATE TRIGGER IF NOT EXISTS trg_pedidos_transicion
-BEFORE UPDATE OF estado ON pedidos
-WHEN NEW.estado IS NOT OLD.estado AND OLD.estado NOT IN ('entregado', 'rechazado', 'cancelado') AND NOT (
-       (NEW.estado = 'aprobado'  AND OLD.estado = 'pendiente')
-    OR (NEW.estado = 'enviado'   AND OLD.estado = 'aprobado')
-    OR (NEW.estado = 'entregado' AND OLD.estado = 'enviado')
-    OR (NEW.estado IN ('rechazado', 'cancelado') AND OLD.estado IN ('pendiente', 'aprobado')))
-BEGIN
-    SELECT RAISE(ABORT, 'TRANSICION_NO_VALIDA');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_pedidos_no_borrar
