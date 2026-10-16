@@ -1,10 +1,11 @@
 import sqlite3
 import uuid
 
-from flask import Blueprint, abort, render_template, request, session
+from flask import Blueprint, abort, g, render_template, request
 
 from src.auditoria import registrar
-from src.calculos import alertas_de
+from src.auth import login_requerido
+from src.calculos import alertas_de, calcular_merma, costo_unitario, margen
 from src.db import obtener_db
 from src.validaciones import ErrorValidacion, fecha, numero_no_negativo, numero_positivo, texto
 
@@ -19,15 +20,15 @@ def crear_lote(db, usuario, formulario):
     cantidad = numero_positivo(formulario.get("cantidad"), "Cantidad")
 
     try:
-        db.execute(
-            "INSERT INTO lotes (codigo, productor, origen, fecha_recepcion, cantidad, creado_por) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (codigo, productor, origen, fecha_rec, cantidad, usuario),
-        )
-        db.commit()
+        with db:
+            db.execute(
+                "INSERT INTO lotes (codigo, productor, origen, fecha_recepcion, cantidad, creado_por) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (codigo, productor, origen, fecha_rec, cantidad, usuario),
+            )
+            registrar(db, usuario, "crear", "lote", codigo, "cantidad", "", cantidad)
     except sqlite3.IntegrityError:
-        db.rollback()
-        raise ErrorValidacion(f"Ya existe un lote con el código {codigo}.")
+        raise ErrorValidacion(f"Ya existe un lote con el código {codigo}.") from None
     return codigo
 
 
@@ -38,27 +39,70 @@ def disponible(db, codigo):
     ).fetchone()
 
 
-@bp_lotes.route("/lotes")
-def lista_lotes():
-    lotes = obtener_db().execute(
-        "SELECT codigo, origen, recibido, disponible, unidad FROM v_inventario_lote ORDER BY codigo"
+def filtrar_lotes(db, origen="", estado=""):
+    return db.execute(
+        "SELECT * FROM v_inventario_lote WHERE (? = '' OR origen = ?) AND (? = '' OR estados LIKE ?) "
+        "ORDER BY codigo",
+        (origen, origen, estado, f"%{estado}%"),
     ).fetchall()
-    return render_template("lotes.html", lotes=lotes)
+
+
+def trazabilidad(db, codigo):
+    lote = db.execute("SELECT * FROM v_inventario_lote WHERE codigo = ?", (codigo,)).fetchone()
+    if lote is None:
+        return None
+    etapas = []
+    for t in db.execute(
+        "SELECT t.*, p.codigo AS producto, p.nombre, p.estado, p.motivo_estado, p.precio_venta "
+        "FROM transformaciones t LEFT JOIN productos p ON p.transformacion_id = t.id "
+        "WHERE t.lote_codigo = ? ORDER BY t.id",
+        (codigo,),
+    ):
+        costo = costo_unitario(t["costo_total"], t["salida"])
+        etapas.append({
+            **dict(t),
+            "merma": calcular_merma(t["entrada"], t["salida"]),
+            "costo_unitario": costo,
+            "margen": margen(t["precio_venta"], costo),
+        })
+    alertas = db.execute("SELECT * FROM alertas WHERE lote_codigo = ? ORDER BY id", (codigo,)).fetchall()
+    return {"lote": lote, "etapas": etapas, "alertas": alertas}
+
+
+@bp_lotes.route("/lotes")
+@login_requerido
+def lista_lotes():
+    origen = request.args.get("origen", "")
+    estado = request.args.get("estado", "")
+    db = obtener_db()
+    origenes = [r[0] for r in db.execute("SELECT DISTINCT origen FROM lotes ORDER BY origen")]
+    return render_template("lotes.html", lotes=filtrar_lotes(db, origen, estado),
+                           origenes=origenes, origen=origen, estado=estado)
 
 
 @bp_lotes.route("/lotes/nuevo", methods=["GET", "POST"])
+@login_requerido
 def lote_nuevo():
     datos, mensaje, error = request.form, "", ""
 
     if request.method == "POST":
         try:
-            codigo = crear_lote(obtener_db(), session.get("usuario", "sin-sesion"), request.form)
+            codigo = crear_lote(obtener_db(), g.usuario, request.form)
             mensaje = f"Lote {codigo} guardado."
             datos = {}
         except ErrorValidacion as e:
             error = str(e)
 
     return render_template("lote_nuevo.html", datos=datos, mensaje=mensaje, error=error)
+
+
+@bp_lotes.route("/lotes/<codigo>")
+@login_requerido
+def detalle(codigo):
+    datos = trazabilidad(obtener_db(), codigo)
+    if datos is None:
+        abort(404)
+    return render_template("lote_detalle.html", error=request.args.get("error", ""), **datos)
 
 
 def registrar_transformacion(db, usuario, lote, formulario):
@@ -118,6 +162,7 @@ def registrar_transformacion(db, usuario, lote, formulario):
 
 
 @bp_lotes.route("/lotes/<codigo>/transformar", methods=["GET", "POST"])
+@login_requerido
 def transformar(codigo):
     db = obtener_db()
     inventario = disponible(db, codigo)
@@ -127,7 +172,7 @@ def transformar(codigo):
     datos, mensaje, error = request.form, "", ""
     if request.method == "POST":
         try:
-            resultado = registrar_transformacion(db, session.get("usuario", "sin-sesion"), codigo, request.form)
+            resultado = registrar_transformacion(db, g.usuario, codigo, request.form)
             mensaje = ("Esta operación ya estaba registrada: no se consumió de nuevo."
                        if resultado == "repetida" else "Transformación registrada.")
             inventario = disponible(db, codigo)
