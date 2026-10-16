@@ -230,4 +230,5 @@ datos/
 .claude/
 .codex/
 skills-lock.json
-product.md
+
+PRODUCT.md
