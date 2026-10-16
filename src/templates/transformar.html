@@ -31,7 +31,8 @@
 {% endif %}
 
 <section class="panel vidrio aparece">
-  <form class="formulario" method="post" novalidate data-transformar>
+  <form class="formulario" method="post" novalidate data-transformar
+        data-umbral-merma="{{ umbral_merma }}" data-margen-objetivo="{{ margen_objetivo }}" data-admin="{{ 'si' if session.rol == 'admin' else 'no' }}">
     <input type="hidden" name="op_id" value="{{ op_id }}">
 
     <p class="grupo">{{ icono('grano') }}Etapa</p>
@@ -61,8 +62,9 @@
     </div>
     <div class="campo">
       <label for="salida">Salida vendible</label>
-      <div class="con-unidad"><input class="control" id="salida" name="salida" inputmode="decimal" value="{{ datos.get('salida', '') }}" aria-describedby="ayuda-salida" required><span>kg</span></div>
-      <span class="ayuda" id="ayuda-salida" {% if session.rol == 'admin' %}data-merma-ayuda{% endif %}>Si es 0 kg no se crea producto.</span>
+      <div class="con-unidad"><input class="control" id="salida" name="salida" inputmode="decimal" value="{{ datos.get('salida', '') }}" aria-describedby="ayuda-salida guia-merma" required><span>kg</span></div>
+      <span class="ayuda" id="ayuda-salida">Si es 0 kg no se crea producto.</span>
+      <span class="guia" id="guia-merma" data-guia="merma" aria-live="polite" hidden></span>
     </div>
     <div class="campo ancho">
       <label for="justificacion">Justificación</label>
@@ -73,11 +75,14 @@
     <p class="grupo">{{ icono('moneda') }}Costos y precio</p>
     <div class="campo">
       <label for="costo_total">Costo total de la etapa</label>
-      <div class="con-unidad"><input class="control" id="costo_total" name="costo_total" inputmode="numeric" value="{{ datos.get('costo_total', '') }}" placeholder="0" required><span>COP</span></div>
+      <div class="con-unidad"><input class="control" id="costo_total" name="costo_total" inputmode="numeric" value="{{ datos.get('costo_total', '') }}" placeholder="0" aria-describedby="guia-costo" required><span>COP</span></div>
+      <span class="guia" id="guia-costo" data-guia="costo" aria-live="polite" hidden></span>
     </div>
     <div class="campo">
       <label for="precio_venta">Precio de venta</label>
-      <div class="con-unidad"><input class="control" id="precio_venta" name="precio_venta" inputmode="numeric" value="{{ datos.get('precio_venta', '') }}" required><span>COP/kg</span></div>
+      <div class="con-unidad"><input class="control" id="precio_venta" name="precio_venta" inputmode="numeric" value="{{ datos.get('precio_venta', '') }}" aria-describedby="guia-precio" required><span>COP/kg</span></div>
+      <span class="guia" id="guia-precio" data-guia="precio" aria-live="polite" hidden></span>
+      {% if session.rol == 'admin' %}<button class="boton-enlace" type="button" data-usar-sugerido hidden>Usar el precio sugerido</button>{% endif %}
     </div>
     <div class="campo ancho">
       <label for="costos_incluidos">Costos incluidos</label>

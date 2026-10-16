@@ -328,6 +328,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .campo.ancho { grid-column: 1 / -1; }
 .campo label { font-size: 13.5px; font-weight: 600; color: var(--espresso); }
 .campo .ayuda { font-size: 12.5px; color: var(--espresso-3); }
+.guia { display: flex; gap: 7px; align-items: baseline; font-size: 12.5px; line-height: 1.45; padding: 7px 10px; border-radius: 10px; }
+.guia::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; transform: translateY(-1px); }
+.guia[hidden] { display: none; }
+.guia.ok { color: var(--liberado); background: var(--liberado-bg); }
+.guia.cuidado { color: var(--pendiente); background: var(--pendiente-bg); }
+.guia.fuera { color: var(--bloqueado); background: var(--bloqueado-bg); }
+.guia b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.boton-enlace { align-self: flex-start; border: 0; background: none; padding: 2px 0; font: inherit; font-size: 12.5px; font-weight: 600;
+  color: var(--hoja-fuerte); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.boton-enlace[hidden] { display: none; }
 .control {
   width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 12px;
   border: 1px solid var(--linea-fuerte); background: rgba(255, 255, 255, .9);
