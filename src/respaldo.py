@@ -1,4 +1,5 @@
 import sqlite3
+from pathlib import Path
 
 import click
 
@@ -6,7 +7,9 @@ from src import db
 
 
 def huella(ruta):
-    conn = sqlite3.connect(ruta)
+    if not Path(ruta).is_file():
+        raise click.ClickException(f"No existe el archivo {ruta}")
+    conn = sqlite3.connect(Path(ruta).resolve().as_uri() + "?mode=ro", uri=True)
     datos = {
         "integridad": conn.execute("PRAGMA integrity_check").fetchone()[0],
         "lotes": [r[0] for r in conn.execute("SELECT codigo FROM lotes ORDER BY codigo")],
@@ -36,9 +39,12 @@ def registrar_comandos(app):
     @app.cli.command("restaurar")
     @click.argument("origen")
     def restaurar(origen):
-        esperado = huella(origen)
+        try:
+            esperado = huella(origen)
+        except sqlite3.DatabaseError:
+            raise click.ClickException(f"{origen} no es un respaldo válido; no se tocó la base actual.") from None
         copiar(origen, db.RUTA_DB)
         obtenido = huella(db.RUTA_DB)
         click.echo(f"Esperado: {esperado}")
         click.echo(f"Obtenido: {obtenido}")
-        click.echo("INTEGRIDAD OK" if esperado == obtenido else "ERROR: la restauración no coincide")
+        click.echo("INTEGRIDAD OK" if esperado == obtenido else "ERROR: la restauración no coincide")
