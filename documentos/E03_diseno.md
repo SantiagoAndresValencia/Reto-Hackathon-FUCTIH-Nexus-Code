@@ -6,15 +6,16 @@
 
 Operador: iniciar sesión → **Recibir lote** → **Transformar** (el sistema muestra cuánto queda
 disponible). Administrador: **detalle del lote** con merma, costo, margen, precio sugerido y alertas →
-**Liberar** o **Bloquear** con motivo → **Auditoría** y **CSV**. Comprador, sin cuenta:
-**Consultar producto** por código o enlace `/ficha/P-CAC001-1`.
+**Liberar** o **Bloquear** con motivo → **Pedidos** (aprobar o rechazar) → **Auditoría** y **CSV**.
+Comprador, sin cuenta: **Vista del comprador** (catálogo de productos liberados) → ficha por código o
+enlace `/ficha/P-CAC001-1` → pedido por kilos → seguimiento con enlace privado.
 
 ## Arquitectura
 
 ![Arquitectura](diagramas/arquitectura.png)
 
 Monolito modular en capas: **presentación** (plantillas Jinja + CSS/JS Kaoka) → **rutas Flask**
-organizadas en tres *blueprints* (`auth`, `lotes`, `productos`) → **reglas de negocio** (`calculos.py`
+organizadas en cuatro *blueprints* (`auth`, `lotes`, `productos`, `pedidos`) → **reglas de negocio** (`calculos.py`
 con funciones puras, `validaciones.py`, `auditoria.py`) → **datos** (SQLite con `schema.sql`).
 Dependencias externas: solo Flask (incluye Werkzeug, Jinja2, Click) y pytest para pruebas.
 
@@ -25,7 +26,9 @@ Dependencias externas: solo Flask (incluye Werkzeug, Jinja2, Click) y pytest par
 | `/lotes/<código>` | Operador y admin (indicadores económicos se muestran solo al admin) | Trazabilidad, indicadores, alertas, estados |
 | `/lotes/<código>/transformar` | Operador y admin | Transformación con control de existencia |
 | `/productos/<código>/estado` (POST) | Solo admin | Liberar o bloquear con motivo |
-| `/consultar`, `/ficha/<código>` | Público | Ficha comercial sin datos internos |
+| `/comprador`, `/ficha/<código>` (`/consultar` redirige) | Público | Catálogo de liberados y ficha comercial sin datos internos |
+| `/ficha/<código>/pedido` (POST), `/pedido/<token>`, `/pedidos/buscar` | Público | Crear, seguir o cancelar un pedido; solo con el enlace privado o con número y contacto |
+| `/admin/pedidos`, `/admin/pedidos/<número>/estado` (POST) | Solo admin | Lista de pedidos; aprobar o rechazar con motivo |
 | `/admin/auditoria`, `/admin/exportar.csv` | Solo admin | Historial filtrable y resumen CSV |
 
 ## Modelo de datos
@@ -39,10 +42,12 @@ Dependencias externas: solo Flask (incluye Werkzeug, Jinja2, Click) y pytest par
 | transformaciones | `id`; `op_id` único | `lote_codigo → lotes` | `entrada > 0`, `salida ≥ 0`; salida > entrada exige justificación; costo > 0 exige costos incluidos |
 | productos | `codigo` (P-lote-n) | `transformacion_id`, `lote_codigo` | estado ∈ {pendiente, liberado, bloqueado}; distinto de pendiente exige motivo |
 | alertas | `id` | `lote_codigo`, `transformacion_id` | tipo, regla y causa obligatorias |
+| pedidos | `id` (PED-0001); `token` único | `producto_codigo → productos` | `kilos > 0`; correo válido; estado ∈ {pendiente, aprobado, rechazado, cancelado}; cerrado exige motivo |
 | auditoria | `id` | `entidad`, `entidad_id` | solo se agregan filas |
 
-Vistas: `v_inventario_lote` (recibido, consumido, disponible, costo y estados por lote) y
-`v_ficha_publica` (solo campos autorizados para el comprador).
+Vistas: `v_inventario_lote` (recibido, consumido, disponible, costo y estados por lote),
+`v_ficha_publica` (solo campos autorizados para el comprador) y `v_producto_disponible` (kg de cada
+producto menos lo apartado por pedidos pendientes o aprobados).
 
 ## Estados, inventario y control de acceso
 
@@ -50,14 +55,18 @@ Vistas: `v_inventario_lote` (recibido, consumido, disponible, costo y estados po
 
 - **Estados:** un producto nace *pendiente* cuando una transformación tiene salida > 0. Solo el
   administrador lo pasa a *liberado* o *bloqueado*, siempre con motivo, y cada cambio queda auditado con
-  valor anterior y nuevo. La ficha pública solo ofrece como disponible un producto liberado.
+  valor anterior y nuevo. Solo un producto liberado aparece en el catálogo y se puede pedir.
+- **Pedidos:** nacen *pendientes*; el administrador los *aprueba* (solo si el producto sigue liberado)
+  o *rechaza* con motivo, y el comprador puede *cancelarlos* con una razón. Rechazado y cancelado son
+  finales. Triggers impiden pedir un producto no liberado, pedir más de lo disponible, reabrir un
+  pedido cerrado y borrar pedidos.
 - **Inventario:** disponible = recibido − Σ entradas de sus transformaciones (vista). Un trigger
   `BEFORE INSERT` rechaza la transformación que exceda lo disponible (`INVENTARIO_INSUFICIENTE`), y el
   `op_id` único (generado al abrir el formulario) evita el doble consumo al reenviar.
 - **Acceso:** `@login_requerido` protege las rutas internas; `@solo_admin` y `exigir_admin()` responden
   403 y registran el intento como «DENEGADO» en la auditoría. Ocultar botones es solo una ayuda visual.
 
-**Dónde se aplican las reglas:** en el servidor (`lotes.py`, `productos.py`, `auth.py`) y en la base de
+**Dónde se aplican las reglas:** en el servidor (`lotes.py`, `productos.py`, `pedidos.py`, `auth.py`) y en la base de
 datos (CHECK, triggers y vistas de `schema.sql`), dentro de transacciones. Si una regla falla, no queda
 ningún registro parcial y el formulario conserva lo escrito.
 
@@ -81,8 +90,13 @@ ningún registro parcial y el formulario conserva lo escrito.
 | Detalle del lote (recorrido, merma, costo, margen, precio sugerido, alertas, estado) | `evidencias/cp11_trazabilidad_admin.png` |
 | Ficha pública (celular) | `evidencias/cp13_ficha_bloqueada_movil.png` |
 | Auditoría | `evidencias/cp14_auditoria.png` |
+| Vista del comprador (catálogo) | `evidencias/cp20_catalogo.png` |
+| Pedido y seguimiento | `evidencias/cp23_pedido_creado.png` |
+| Pedidos (administrador) | `evidencias/cp24_pedido_aprobado.png` |
 | Vista móvil | `evidencias/movil_lotes.png`, `evidencias/movil_transformar.png` |
 
 **Diferencias entre diseño y aplicación:** la primera versión usaba una interfaz sencilla
 (`static/estilos.css`), que se reemplazó por el diseño Kaoka (`kaoka.css`, `kaoka.js`) con la misma
-lógica y rutas. `estilos.css` se conserva en el repositorio pero las plantillas actuales usan Kaoka.
+lógica y rutas. `estilos.css` se conserva en el repositorio pero las plantillas actuales usan Kaoka. La
+consulta pública por código (`/consultar`) se integró en la Vista del comprador (`/comprador`), que
+además tiene el catálogo y los pedidos; la ruta antigua redirige a la nueva.

@@ -5,18 +5,83 @@ erDiagram
   LOTES ||--o{ PRODUCTOS : "origen de"
   LOTES ||--o{ ALERTAS : "tiene"
   TRANSFORMACIONES ||--o{ ALERTAS : "dispara"
-  LOTES { text codigo PK }
-  TRANSFORMACIONES { int id PK
+  PRODUCTOS ||--o{ PEDIDOS : "se pide en"
+  USUARIOS {
+    integer id PK
+    text usuario UK
+    text clave_hash
+    text rol
+  }
+  LOTES {
+    text codigo PK
+    text productor
+    text origen
+    text fecha_recepcion
+    real cantidad
+    text unidad
+    text creado_por
+    text creado_en
+  }
+  TRANSFORMACIONES {
+    integer id PK
     text op_id UK
-    text lote_codigo FK }
-  PRODUCTOS { text codigo PK
-    int transformacion_id FK
     text lote_codigo FK
-    text estado }
-  ALERTAS { int id PK
+    text etapa
+    text responsable
+    text fecha
+    real entrada
+    real salida
+    real costo_total
+    text costos_incluidos
+    text incidencias
+    text justificacion
+    text creado_por
+    text creado_en
+  }
+  PRODUCTOS {
+    text codigo PK
+    integer transformacion_id FK
     text lote_codigo FK
-    int transformacion_id FK }
-  USUARIOS { int id PK
-    text usuario UK }
-  AUDITORIA { int id PK
-    text entidad_id }
+    text nombre
+    real cantidad
+    text unidad
+    real precio_venta
+    text estado
+    text motivo_estado
+  }
+  ALERTAS {
+    integer id PK
+    text lote_codigo FK
+    integer transformacion_id FK
+    text tipo
+    text regla
+    text causa
+    text creada_en
+  }
+  PEDIDOS {
+    integer id PK
+    text token UK
+    text producto_codigo FK
+    text comprador
+    text municipio
+    text direccion
+    text telefono
+    text correo
+    real kilos
+    real precio_kg
+    text estado
+    text motivo_estado
+    text creado_en
+    text actualizado_en
+  }
+  AUDITORIA {
+    integer id PK
+    text usuario
+    text fecha
+    text accion
+    text entidad
+    text entidad_id
+    text campo
+    text valor_anterior
+    text valor_nuevo
+  }

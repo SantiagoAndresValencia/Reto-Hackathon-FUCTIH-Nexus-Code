@@ -3,9 +3,9 @@
 ## Instalación limpia verificada
 
 Instrucciones completas en el [README](../README.md). Verificado el 16/10/2026 en un entorno Linux
-limpio: clon del commit `bc95156` → entorno virtual nuevo → `pip install -r requirements.txt` (Flask
-3.1.3, Werkzeug 3.1.9, Jinja2 3.1.6, Click 8.5.0, pytest 9.1.1) → `cargar-demo` → `pytest` = **68
-passed** → `flask run` y los 19 casos de E05. En Windows, igual, con `.venv\Scripts\activate`.
+limpio: clon del commit `ca3d77c` → entorno virtual nuevo → `pip install -r requirements.txt` (Flask
+3.1.3, Werkzeug 3.1.9, Jinja2 3.1.6, Click 8.5.0, pytest 9.1.1) → `cargar-demo` → `pytest` = **80
+passed** → `flask run` y los 25 casos de E05. En Windows, igual, con `.venv\Scripts\activate`.
 
 **Configuración sin secretos:** única variable `CACAO_SECRET` (Windows:
 `set CACAO_SECRET=una-frase-larga`). El repositorio no contiene claves.
@@ -31,7 +31,7 @@ mismo (`evidencias/cp17_respaldo_restauracion.txt`). Rutina: respaldo diario al 
 | Sin Internet | Funciona igual: servidor, base de datos, fuentes e íconos son locales. Los celulares se conectan por la red Wi-Fi local (`flask --app src/app run --host 0.0.0.0`) aunque no haya Internet |
 | Si se apaga el computador | Los datos siguen en `datos/cacao.db` al volver a ejecutar la app (CP16) |
 
-**Correcciones realizadas:** los nueve fallos del desarrollo y su corrección están en E05; el más
+**Correcciones realizadas:** los diez fallos del desarrollo y su corrección están en E05; el más
 grave, la clave de sesión fija que permitía falsificar una sesión de administrador, se corrigió en
 `7b4bce1` con prueba de regresión.
 
@@ -43,6 +43,7 @@ grave, la clave de sesión fija que permitía falsificar una sesión de administ
 | El bloqueo es por producto, no por lote completo | Varios clics si un lote tiene muchos productos | Bloquear cada producto desde el detalle del lote |
 | Usuarios solo por comando | Sin cambio de contraseña desde la interfaz | Cambiar los de demostración antes de un uso real |
 | HTTP local sin HTTPS; cerrar sesión es un enlace (GET) | No apto para Internet pública | Usar solo en red local; la cookie es SameSite=Lax |
+| La huella de `restaurar` no cuenta los pedidos | La integridad de los pedidos no se compara automáticamente | Revisar la lista de Pedidos tras restaurar |
 | SQLite admite una escritura a la vez | Suficiente para una asociación | Migrar a PostgreSQL si se agrupan varias asociaciones |
 
 ## Mejoras priorizadas para 30 días

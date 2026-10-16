@@ -1,7 +1,7 @@
 flowchart LR
   N["Navegador<br/>computador o celular"] -->|"formularios HTML"| R
   subgraph APP["Flask · src/app.py"]
-    R["Rutas (blueprints)<br/>auth.py · lotes.py · productos.py<br/>@login_requerido · @solo_admin"]
+    R["Rutas (blueprints)<br/>auth.py · lotes.py<br/>productos.py · pedidos.py<br/>@login_requerido · @solo_admin"]
     L["Reglas de negocio<br/>calculos.py · validaciones.py<br/>auditoria.py · respaldo.py"]
     T["Presentación<br/>templates/ (Jinja)<br/>static/ (Kaoka CSS/JS)"]
     R --> L

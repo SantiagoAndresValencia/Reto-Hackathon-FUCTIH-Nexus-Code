@@ -1,7 +1,17 @@
-stateDiagram-v2
-  direction LR
-  [*] --> pendiente: transformación con salida > 0
-  pendiente --> liberado: admin + motivo
-  pendiente --> bloqueado: admin + motivo
-  liberado --> bloqueado: admin + motivo
-  bloqueado --> liberado: admin + motivo
+flowchart LR
+  subgraph PR["Estados del producto"]
+    direction LR
+    i1(( )) -->|"transformación<br/>con salida > 0"| pp[pendiente]
+    pp -->|"admin + motivo"| li[liberado]
+    pp -->|"admin + motivo"| bl[bloqueado]
+    li <-->|"admin + motivo"| bl
+  end
+  subgraph PE["Estados del pedido"]
+    direction LR
+    i2(( )) -->|"comprador pide<br/>solo liberados, sin sobreventa"| dp[pendiente]
+    dp -->|"admin + motivo"| ap[aprobado]
+    dp -->|"admin + motivo"| re[rechazado ■]
+    ap -->|"admin + motivo"| re
+    dp -->|"comprador + razón"| ca[cancelado ■]
+    ap -->|"comprador + razón"| ca
+  end

@@ -123,9 +123,9 @@
   "id": "CP13",
   "req": "RF06/RF09/Hora 12",
   "datos": "Bloquear P-CAC001-1 como admin; consultar sin sesión en celular",
-  "pasos": "Bloquear con motivo → Consultar producto",
-  "esperado": "Ficha: bloqueado, origen Rivera, sin costos ni productor",
-  "obtenido": "Ficha pública muestra estado bloqueado y origen Rivera; no muestra costos, precio ni productor",
+  "pasos": "Bloquear con motivo → Vista del comprador → código",
+  "esperado": "Ficha: bloqueado, no ofrecido como disponible, origen Rivera, sin costos internos ni productor",
+  "obtenido": "Ficha pública: «Producto bloqueado», sin kg para pedir ni formulario, origen Rivera; no muestra costos internos ni productor",
   "estado": "Pasa",
   "evidencia": "evidencias/cp13_ficha_bloqueada_movil.png"
  },
@@ -188,5 +188,65 @@
   "obtenido": "Ancho de página 390px; campos sin etiqueta: ninguno",
   "estado": "Pasa",
   "evidencia": "evidencias/movil_transformar.png"
+ },
+ {
+  "id": "CP20",
+  "req": "RF06/RF09 · Venta",
+  "datos": "P-CAC004-1 liberado (45 kg); P-CAC001-1 bloqueado",
+  "pasos": "Abrir Vista del comprador sin sesión",
+  "esperado": "El catálogo muestra solo productos liberados con kg disponibles",
+  "obtenido": "Aparece P-CAC004-1; P-CAC001-1 (bloqueado) no aparece",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp20_catalogo.png"
+ },
+ {
+  "id": "CP21",
+  "req": "RF08 · Venta",
+  "datos": "Pedido de 60 kg sobre 45 kg disponibles",
+  "pasos": "Ficha → Enviar pedido",
+  "esperado": "Rechaza, avisa cuánto queda y conserva lo escrito",
+  "obtenido": "«Solo quedan 45 kg disponibles.»; datos del comprador conservados",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp21_pedido_excede.png"
+ },
+ {
+  "id": "CP22",
+  "req": "Validación · Venta",
+  "datos": "Correo «correo-malo»",
+  "pasos": "Ficha → Enviar pedido",
+  "esperado": "Mensaje claro, no se crea el pedido",
+  "obtenido": "«El campo «Correo» debe ser un correo válido…»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp22_pedido_correo.png"
+ },
+ {
+  "id": "CP23",
+  "req": "Venta",
+  "datos": "20 kg de P-CAC004-1, Neiva, datos válidos (ficticios)",
+  "pasos": "Ficha → Enviar pedido",
+  "esperado": "Crea PED-0001 pendiente con enlace de seguimiento",
+  "obtenido": "Página de seguimiento de PED-0001, estado pendiente",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp23_pedido_creado.png"
+ },
+ {
+  "id": "CP24",
+  "req": "RF09/RF10 · Venta",
+  "datos": "PED-0001; operador y luego admin",
+  "pasos": "Aprobar pedido",
+  "esperado": "Operador: 403. Admin: aprobado con motivo y auditado",
+  "obtenido": "Operador: 403; admin: PED-0001 aprobado",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp24_pedido_aprobado.png"
+ },
+ {
+  "id": "CP25",
+  "req": "Privacidad · Venta",
+  "datos": "PED-0001 con teléfono equivocado y luego correcto",
+  "pasos": "Vista del comprador → Ver mi pedido",
+  "esperado": "Solo con el contacto correcto se ve el pedido",
+  "obtenido": "Teléfono equivocado: no lo muestra; correcto: muestra PED-0001 aprobado",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp25_seguir_pedido.png"
  }
 ]

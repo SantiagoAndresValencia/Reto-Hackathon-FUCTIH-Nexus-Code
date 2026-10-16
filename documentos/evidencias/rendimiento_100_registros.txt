@@ -1,6 +1,6 @@
 Equipo: Linux 6.18.44-fc-v139 · x86_64 · Python 3.13.16
 Registros del lote CAC100: {'transformaciones': 100, 'productos': 100, 'alertas': 100}
 Consulta: GET /lotes/CAC100 (trazabilidad completa como admin), 20 repeticiones
-Primera: 0.067 s · Mediana: 0.030 s · Máxima: 0.067 s
+Primera: 0.144 s · Mediana: 0.061 s · Máxima: 0.144 s
 RESULTADO: CUMPLE (≤ 3 s)
 CPU: Intel(R) Xeon(R) Processor @ 2.10GHz · 2 núcleos · 7,8 GB RAM (contenedor de prueba). Fecha: 2026-10-16

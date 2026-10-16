@@ -26,7 +26,7 @@
 
   <dl class="datos">
     <div><dt>Precio</dt><dd>{{ f.precio_venta|miles }} COP/{{ f.unidad }}</dd></div>
-    <div><dt>Disponible para pedir</dt><dd>{{ [disponible, 0]|max|kg }} {{ f.unidad }}</dd></div>
+    {% if f.en_venta %}<div><dt>Disponible para pedir</dt><dd>{{ [disponible, 0]|max|kg }} {{ f.unidad }}</dd></div>{% endif %}
     <div><dt>Código</dt><dd>{{ f.codigo_producto }}</dd></div>
     <div><dt>Lote de origen</dt><dd>{{ f.lote_codigo }}</dd></div>
   </dl>

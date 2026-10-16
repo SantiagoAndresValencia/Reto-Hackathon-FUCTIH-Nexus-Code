@@ -4,16 +4,19 @@
 
 Kaoka es un MVP web para que una asociación cacaotera del Huila (simulada) registre el cacao que recibe,
 lo transforme sin consumir más de lo que tiene, calcule merma, costo y margen, decida qué productos se
-venden y le muestre al comprador el origen del producto sin revelar datos internos.
+venden y le muestre al comprador el origen del producto sin revelar datos internos. El comprador puede
+además pedir por kilos los productos liberados.
 
 - **Operador:** recibe lotes y registra transformaciones.
-- **Administrador:** ve costos y márgenes, libera o bloquea productos, revisa la auditoría y exporta CSV.
-- **Comprador:** consulta la ficha pública por código, sin iniciar sesión.
+- **Administrador:** ve costos y márgenes, libera o bloquea productos, aprueba o rechaza pedidos, revisa la auditoría y exporta CSV.
+- **Comprador:** sin iniciar sesión, consulta el catálogo y la ficha pública, hace pedidos y les hace seguimiento.
 
-**Diferenciador:** *Precio justo sugerido.* Además del margen actual, Kaoka calcula el precio mínimo al
-que la asociación debe vender para ganar el margen objetivo (30 %): `costo unitario ÷ (1 − 0,30)`.
-Con el ejemplo del reto (20.000 COP/kg) sugiere 28.571 COP/kg. Es apoyo a la venta para que el productor
-no venda a pérdida.
+**Diferenciador (apoyo a la venta):**
+1. *Precio justo sugerido:* además del margen actual, Kaoka calcula el precio mínimo al que la
+   asociación debe vender para ganar el margen objetivo (30 %): `costo unitario ÷ (1 − 0,30)`. Con el
+   ejemplo del reto (20.000 COP/kg) sugiere 28.571 COP/kg.
+2. *Catálogo y pedidos:* el comprador ve solo los productos liberados, pide por kilos sin poder pedir
+   más de lo disponible y sigue su pedido con un enlace privado; el administrador lo aprueba o rechaza.
 
 Índice de la entrega y matriz de trazabilidad: [ENTREGA.md](ENTREGA.md).
 
@@ -76,8 +79,14 @@ Las contraseñas son solo de demostración (datos sintéticos).
 ```bash
 flask --app src/app run
 ```
-Abrir <http://127.0.0.1:5000>. 
 
+Abrir <http://127.0.0.1:5000>. Para verlo desde un celular en la misma red Wi-Fi:
+`flask --app src/app run --host 0.0.0.0` y abrir `http://IP-DEL-COMPUTADOR:5000`.
+
+Recorrido del jurado: iniciar sesión → **Recibir lote** → **Transformar** (100 → 80 kg, costo 1.600.000,
+precio 25.000) → ver merma 20 %, alerta, 20.000 COP/kg, margen 20 % y precio sugerido → como admin
+**Liberar/Bloquear** con motivo → **Vista del comprador** sin sesión: catálogo, ficha `P-CAC001-1` y
+pedido → **Pedidos** (aprobar o rechazar) → **Auditoría**.
 
 ## Pruebas automatizadas
 
@@ -85,9 +94,9 @@ Abrir <http://127.0.0.1:5000>.
 python -m pytest -v
 ```
 
-68 pruebas en `src/tests/` (inventario, doble envío, cálculos, permisos, estados, ficha pública,
-auditoría, CSV, respaldo y reglas de la base de datos). Resultado verificado: **68 passed**
-([salida completa](documentos/evidencias/pytest_salida.txt)).
+80 pruebas en `src/tests/` (inventario, doble envío, cálculos, permisos, estados, ficha pública,
+pedidos sin sobreventa, auditoría, CSV, respaldo y reglas de la base de datos). Resultado verificado:
+**80 passed** ([salida completa](documentos/evidencias/pytest_salida.txt)).
 
 Medición de rendimiento (100 transformaciones sintéticas en una base temporal, no toca sus datos):
 
@@ -98,8 +107,8 @@ python scripts/medir_rendimiento.py
 ## Respaldo y restauración
 
 ```bash
-flask --app src/app respaldar datos/mi_respaldo.db      
-flask --app src/app restaurar datos/respaldo_demo.db    
+flask --app src/app respaldar datos/mi_respaldo.db
+flask --app src/app restaurar datos/respaldo_demo.db
 ```
 
 `restaurar` imprime la huella esperada y la obtenida (lotes, kg recibidos, transformaciones, productos,
@@ -111,8 +120,8 @@ archivo no existe o no es una base SQLite válida, se detiene sin tocar la base 
 ## Estructura
 
 ```
-src/            código (Flask): app, auth, lotes, productos, calculos, validaciones, auditoria, respaldo
-src/schema.sql  tablas, restricciones CHECK, vistas y triggers (inventario e historial inmutable)
+src/            código (Flask): app, auth, lotes, productos, pedidos, calculos, validaciones, auditoria, respaldo
+src/schema.sql  tablas, restricciones CHECK, vistas y triggers (inventario, sobreventa e historial inmutable)
 src/templates/  pantallas (Jinja) · src/static/ estilos y JS del diseño Kaoka
 src/tests/      pruebas automatizadas (pytest)
 scripts/        medición de rendimiento
@@ -121,35 +130,37 @@ documentos/     E01–E03, E05–E09 (.md y .pdf), evidencias/ y diagramas/
 pitch/          E09_presentacion.pdf (5 diapositivas)
 ```
 
-Arquitectura: monolito modular en capas (Flask + SQLite). Las reglas de inventario, costos y permisos
-se aplican en el servidor y en la base de datos, no solo en la interfaz. Detalle en
+Arquitectura: monolito modular en capas (Flask + SQLite). Las reglas de inventario, costos, pedidos y
+permisos se aplican en el servidor y en la base de datos, no solo en la interfaz. Detalle en
 [E03](documentos/E03_diseno.md).
 
 ## Uso de inteligencia artificial (declaración obligatoria)
 
-Usamos IA generativa como asistente durante el evento. Resumen (detalle por herramienta, archivo y
-revisión humana en [E08](documentos/E08_IA_y_fuentes.md)):
+Usamos IA generativa (Claude, de Anthropic) como asistente durante el evento. Detalle por herramienta,
+archivo y revisión humana en [E08](documentos/E08_IA_y_fuentes.md).
 
 | Parte | Quién la hizo | Asistencia de IA |
 | --- | --- | --- |
-| Plan, división del trabajo | Equipo | Claude (Anthropic) propuso el plan; el equipo decidió y ejecutó |
-| `src/schema.sql`, `test_schema.py` | Thomas Chica | Declarado en E08 |
-| `calculos.py`, `test_calculos.py` | Dabidri | Declarado en E08  |
-| `validaciones.py`, `db.py`, `lotes.py`, `auth.py`, `productos.py`, `auditoria.py`, `respaldo.py`, `app.py`, pruebas de flujo | Santiago Valencia | Código guiado; Santiago se guio del flujo que debia llevar el backend, lo ejecutó, corrigió errores y lo subió con commits propios |
-| Diseño visual Kaoka (`templates/`, `static/`) | Dabidri | Asistido por IA  |
-| Revisión de seguridad, precio justo sugerido | Santiago Valencia | Claude encontró fallos y propuso el código; Santiago lo revisó y aplicó |
-| Documentación E01–E09, pruebas en navegador, diagramas | Equipo |
+| Plan, división del trabajo, guía de Git | Equipo | Claude propuso el plan y explicó Git; el equipo decidió y ejecutó |
+| `src/schema.sql` | Thomas Chica | Sin IA |
+| `test_schema.py` | Thomas Chica | Generado con Claude; Thomas lo ejecutó contra su esquema |
+| `calculos.py`, `test_calculos.py` | David Rojas Ipuz (Dabidri) | Claude como guía de los cálculos; las pruebas las generó Claude |
+| `validaciones.py`, `db.py`, `lotes.py`, `auth.py`, `productos.py`, `auditoria.py`, `respaldo.py`, `app.py`, pruebas de flujo | Santiago Valencia | Código generado por partes con Claude; Santiago lo ejecutó, lo probó, corrigió los errores y lo subió con commits propios |
+| Diseño visual Kaoka (`templates/`, `static/`) | David Rojas Ipuz (Dabidri) | Generado con Claude a partir de sus prompts |
+| Catálogo del comprador y pedidos (`pedidos.py`, plantillas y pruebas de pedidos) | David Rojas Ipuz (Dabidri) | Generado con Claude a partir de sus prompts; probado con la suite de pruebas |
+| Revisión de seguridad y precio justo sugerido | Santiago Valencia | Claude encontró fallos y propuso el código; Santiago lo revisó y aplicó |
+| Documentación E01–E09, pruebas en navegador, diagramas | Equipo | Borradores generados con Claude a partir del código real; el equipo los revisó y completó |
 
 El producto **no usa IA** en tiempo de ejecución.
 
 ## Limitaciones conocidas
 
 - El bloqueo es por producto: un lote con varios productos se bloquea producto por producto.
-- La prueba de usabilidad con una persona externa se registra en E06 (ver estado allí).
+- Los pedidos no incluyen pagos: la aprobación del administrador confirma el pedido.
 - SQLite admite una escritura a la vez: suficiente para una asociación, no para muchas simultáneas.
 - Ejecución local por HTTP; para uso en red pública se requiere HTTPS.
 
 ## Licencia y componentes
 
 Flask, Werkzeug, Jinja2 y Click (BSD-3-Clause), pytest (MIT), SQLite (dominio público).
-Datos, productores y asociación son ficticios.
+Datos, productores, compradores y asociación son ficticios.

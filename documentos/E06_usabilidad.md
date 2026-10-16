@@ -26,13 +26,13 @@ saldrán las mejoras.
 
 ## 3. Verificaciones de accesibilidad hechas por el equipo
 
-Ejecutadas automáticamente en Chromium el 16/10/2026 sobre el commit `bc95156`.
+Ejecutadas automáticamente en Chromium el 16/10/2026 sobre la versión de entrega (commit `ca3d77c` más la corrección de `ficha.html`).
 
 | Verificación | Método | Resultado | Evidencia |
 | --- | --- | --- | --- |
-| Vista móvil | Pantallas Lotes, Transformar y Ficha a 390×844 | Sin desplazamiento horizontal (ancho de página 390 px); el menú lateral se convierte en un botón de menú (☰) y la tabla de lotes en tarjetas | `evidencias/movil_lotes.png`, `movil_transformar.png`, `cp13_ficha_bloqueada_movil.png` |
+| Vista móvil | Pantallas Lotes, Transformar, Ficha y Vista del comprador a 390×844 | Sin desplazamiento horizontal (ancho de página 390 px); el menú lateral se convierte en un botón de menú (☰) y la tabla de lotes en tarjetas | `evidencias/movil_lotes.png`, `movil_transformar.png`, `movil_comprador.png`, `cp13_ficha_bloqueada_movil.png` |
 | Etiquetas de formularios | Script que busca campos visibles sin `<label>` ni `aria-label` en Transformar | Ningún campo sin etiqueta | CP19 en E05 |
-| Navegación por teclado | Iniciar sesión solo con Tab y Enter; recorrer Recibir lote con Tab | El foco empieza en «Usuario»; Tab pasa a «Clave»; Enter entra. En Recibir lote el orden es: *Saltar al contenido* → menú → código → productor → origen → fecha | `evidencias/teclado.txt` |
+| Navegación por teclado | Iniciar sesión solo con Tab y Enter; recorrer Recibir lote con Tab | El foco empieza en «Usuario»; Tab pasa a «Clave»; Enter entra. En Recibir lote el orden es: *Saltar al contenido* → menú (incluye Vista del comprador y Pedidos) → código → productor → origen → fecha | `evidencias/teclado.txt` |
 | Foco visible | Estilo calculado del campo con foco | Anillo de foco verde de 4 px (`box-shadow`) | `evidencias/teclado_foco.png` |
 | Mensajes de error comprensibles | Casos negativos de E05 | Dicen qué campo corregir y conservan lo escrito: «El campo «Cantidad» debe ser mayor que 0», «Ya existe un lote con el código CAC001», «No hay suficiente cacao disponible en CAC002» | CP04–CP06, CP09 |
 | Contraste | Revisión visual de las capturas (no se midió con herramienta) | Texto oscuro sobre paneles claros; estados con color **y** texto (no solo color) | Capturas de E05 |

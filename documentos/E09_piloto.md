@@ -9,14 +9,14 @@
 | --- | --- |
 | **Cliente y pagador** | La asociación cacaotera (decide la junta directiva). Hipótesis: un comprador que exige trazabilidad podría cofinanciar el piloto |
 | **Usuarios** | Operador de planta (recibe y transforma) y administrador (costos, estados y reportes) |
-| **Beneficiario externo** | El comprador, que consulta gratis la ficha con el código del empaque |
+| **Beneficiario externo** | El comprador, que consulta gratis el catálogo y la ficha, y hace pedidos por kilos |
 
 ## Oferta: Plan Kaoka Asociación
 
 **Precio: 130.000 COP al mes por asociación.**
 
 Incluye: instalación inicial en un computador de la asociación (no requiere Internet), hasta 5
-usuarios internos, lotes y consultas públicas ilimitados, capacitación inicial de 2 horas, respaldo
+usuarios internos, lotes, consultas públicas y pedidos ilimitados, catálogo público para compradores, capacitación inicial de 2 horas, respaldo
 diario guiado con verificación de integridad mensual, soporte por WhatsApp de lunes a viernes de
 8 a. m. a 5 p. m. (respuesta en un día hábil) y una actualización al mes.
 
@@ -45,11 +45,11 @@ etapa) **y frente a sistemas empresariales**, Kaoka funciona sin Internet y se a
 ## Canal y diferenciador
 
 **Canal:** demostraciones en ferias regionales y presentaciones de 20 minutos ante juntas directivas,
-usando sus propios lotes; además, referidos, porque cada ficha pública que ve un comprador lleva la
-marca Kaoka.
+usando sus propios lotes; además, referidos, porque el catálogo y cada ficha que ve un comprador llevan
+la marca Kaoka.
 **Diferenciador:** el *precio justo sugerido* (a qué precio vender para ganar el margen objetivo, con
-la fórmula visible), junto con la ficha pública por código, que responde «¿de dónde viene y se puede
-vender?».
+la fórmula visible), junto con el catálogo y los pedidos: el comprador ve de dónde viene el cacao y lo
+pide por kilos sin que se venda más de lo disponible.
 
 ## Piloto de 30 días
 
