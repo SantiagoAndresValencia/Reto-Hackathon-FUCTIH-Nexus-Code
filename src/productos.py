@@ -1,5 +1,6 @@
 import csv
 import io
+import socket
 
 import segno
 
@@ -119,12 +120,26 @@ def etiqueta(codigo):
     if datos is None:
         abort(404)
     enlace, qr = qr_de_ficha(datos["codigo_producto"])
-    return render_template("etiqueta.html", f=datos, enlace=enlace, qr=qr, local=es_local())
+    return render_template("etiqueta.html", f=datos, enlace=enlace, qr=qr)
 
 
 def qr_de_ficha(codigo):
     enlace = url_for("productos.ficha", codigo=codigo, _external=True)
-    return enlace, segno.make(enlace, error="m").svg_inline(scale=6, border=2, dark="#2b1a10", omitsize=True)
+    if es_local():
+        puerto = request.host.split(":")[1] if ":" in request.host else "80"
+        enlace = enlace.replace(request.host, f"{ip_de_la_red()}:{puerto}", 1)
+    svg = segno.make(enlace, error="m").svg_inline(scale=6, border=2, dark="#2b1a10", light="#ffffff", omitsize=True)
+    return enlace, svg.replace("<svg ", '<svg width="240" height="240" ', 1)
+
+
+def ip_de_la_red():
+    """IP del computador en la red Wi-Fi, para que el celular pueda abrir el QR (no envía datos)."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            return s.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
 
 
 def es_local():
@@ -178,7 +193,7 @@ def ficha(codigo):
         abort(404)
     enlace, qr = qr_de_ficha(datos["codigo_producto"])
     return render_template("ficha.html", f=datos, disponible=disponible_producto(db, datos["codigo_producto"]), form={},
-                           enlace=enlace, qr=qr, local=es_local())
+                           enlace=enlace, qr=qr)
 
 
 @bp_productos.route("/admin/exportar.csv")

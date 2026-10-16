@@ -94,7 +94,7 @@
   <h2 class="panel-titulo" id="t-qr" style="margin-bottom:6px">Código QR de esta ficha</h2>
   <div class="qr" role="img" aria-label="Código QR que abre la ficha {{ f.codigo_producto }}">{{ qr|safe }}</div>
   <p class="subtitulo" style="font-size:14px">Escanéelo con el celular para abrir esta ficha.</p>
-  {% if local %}<p class="etiqueta-enlace">Abrió Kaoka como {{ request.host }}: para que un celular lea el QR, abra Kaoka con la IP del computador.</p>{% endif %}
+  <p class="etiqueta-enlace">{{ enlace }}</p>
 </section>
 
 <section class="panel vidrio aparece" aria-labelledby="t-otra">
