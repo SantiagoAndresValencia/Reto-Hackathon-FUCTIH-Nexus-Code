@@ -118,10 +118,17 @@ def etiqueta(codigo):
     datos = ficha_publica(obtener_db(), codigo)
     if datos is None:
         abort(404)
-    enlace = url_for("productos.ficha", codigo=datos["codigo_producto"], _external=True)
-    qr = segno.make(enlace, error="m").svg_inline(scale=6, border=2, dark="#2b1a10", omitsize=True)
-    local = request.host.split(":")[0] in ("127.0.0.1", "localhost")
-    return render_template("etiqueta.html", f=datos, enlace=enlace, qr=qr, local=local)
+    enlace, qr = qr_de_ficha(datos["codigo_producto"])
+    return render_template("etiqueta.html", f=datos, enlace=enlace, qr=qr, local=es_local())
+
+
+def qr_de_ficha(codigo):
+    enlace = url_for("productos.ficha", codigo=codigo, _external=True)
+    return enlace, segno.make(enlace, error="m").svg_inline(scale=6, border=2, dark="#2b1a10", omitsize=True)
+
+
+def es_local():
+    return request.host.split(":")[0] in ("127.0.0.1", "localhost")
 
 
 def catalogo(db, origen="", etapa=""):
@@ -169,7 +176,9 @@ def ficha(codigo):
     datos = ficha_publica(db, codigo)
     if datos is None:
         abort(404)
-    return render_template("ficha.html", f=datos, disponible=disponible_producto(db, datos["codigo_producto"]), form={})
+    enlace, qr = qr_de_ficha(datos["codigo_producto"])
+    return render_template("ficha.html", f=datos, disponible=disponible_producto(db, datos["codigo_producto"]), form={},
+                           enlace=enlace, qr=qr, local=es_local())
 
 
 @bp_productos.route("/admin/exportar.csv")

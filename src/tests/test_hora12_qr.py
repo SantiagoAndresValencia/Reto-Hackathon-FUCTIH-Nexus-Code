@@ -44,3 +44,9 @@ def test_etiqueta_qr_apunta_a_la_ficha(cliente):
     assert r.status_code == 200 and "<svg" in html
     assert "http://192.168.1.203:5000/ficha/P-CAC002-1" in html
     assert cliente.get("/productos/NO-EXISTE/etiqueta", base_url=ip).status_code == 404
+
+
+def test_ficha_publica_muestra_qr(cliente):
+    _dos_productos(cliente)
+    html = cliente.get("/ficha/P-CAC002-1").get_data(as_text=True)
+    assert "Código QR de esta ficha" in html and "<svg" in html
