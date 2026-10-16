@@ -224,3 +224,10 @@ __marimo__/
 
 *.db
 datos/
+
+.impeccable/
+.agents/
+.claude/
+.codex/
+skills-lock.json
+product.md
