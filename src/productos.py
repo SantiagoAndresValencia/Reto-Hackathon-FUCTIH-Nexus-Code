@@ -63,6 +63,14 @@ def estado(codigo):
     return redirect(url_for("lotes.detalle", codigo=lote))
 
 
+@bp_productos.route("/consultar")
+def consultar():
+    codigo = request.args.get("codigo", "").strip().upper()
+    if codigo:
+        return redirect(url_for("productos.ficha", codigo=codigo))
+    return render_template("consultar.html")
+
+
 @bp_productos.route("/ficha/<codigo>")
 def ficha(codigo):
     datos = ficha_publica(obtener_db(), codigo)

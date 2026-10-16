@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "_iconos.html" import icono %}
+{% block cuerpo %}
+<div class="publico">
+  <a class="marca" href="{{ url_for('productos.consultar') }}">
+    <span class="marca-icono">{{ icono('mazorca') }}</span>
+    <span class="marca-texto"><b>Kaoka</b><span>Trazabilidad de cacao · Huila</span></span>
+  </a>
+  <main id="contenido" tabindex="-1">
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer class="pie vidrio">{{ icono('info') }}Datos de una asociación simulada para demostración; los productores son ficticios.</footer>
+</div>
+{% endblock %}

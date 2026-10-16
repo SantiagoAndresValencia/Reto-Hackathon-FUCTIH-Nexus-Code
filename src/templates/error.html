@@ -1,9 +1,15 @@
-{% extends "base.html" %}
-{% block titulo %}Aviso · Cacao con Historia{% endblock %}
+{% extends "base.html" if session.usuario else "publico.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Aviso{% endblock %}
 {% block contenido %}
-<section class="tarjeta estrecha">
-  <h1>Aviso</h1>
+<section class="error-pagina vidrio aparece" aria-labelledby="t-aviso" style="max-width:520px; width:100%; margin:auto">
+  <div class="pasaporte-icono">{{ icono('alerta') }}</div>
+  <h1 id="t-aviso">Aviso</h1>
   <p>{{ mensaje_error }}</p>
-  <a class="boton secundario" href="{{ url_for('lotes.lista_lotes') }}">Volver a los lotes</a>
+  {% if session.usuario %}
+  <a class="boton boton-primario" href="{{ url_for('lotes.lista_lotes') }}">{{ icono('atras') }}Volver a los lotes</a>
+  {% else %}
+  <a class="boton boton-primario" href="{{ url_for('productos.consultar') }}">{{ icono('atras') }}Consultar un producto</a>
+  {% endif %}
 </section>
 {% endblock %}

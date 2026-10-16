@@ -1,32 +1,62 @@
 {% extends "base.html" %}
-{% block titulo %}Recibir lote · Cacao con Historia{% endblock %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Recibir lote{% endblock %}
 {% block contenido %}
-<section class="tarjeta">
-  <h1>Recibir lote</h1>
-  <form method="post" novalidate>
-    <div class="campos">
-      <div>
-        <label for="codigo">Código del lote</label>
-        <input id="codigo" name="codigo" value="{{ datos.get('codigo', '') }}" placeholder="CAC004">
-      </div>
-      <div>
-        <label for="productor">Productor</label>
-        <input id="productor" name="productor" value="{{ datos.get('productor', '') }}">
-      </div>
-      <div>
-        <label for="origen">Origen (municipio)</label>
-        <input id="origen" name="origen" value="{{ datos.get('origen', '') }}" placeholder="Rivera">
-      </div>
-      <div>
-        <label for="fecha_recepcion">Fecha de recepción</label>
-        <input id="fecha_recepcion" name="fecha_recepcion" type="date" value="{{ datos.get('fecha_recepcion', '') }}">
-      </div>
-      <div>
-        <label for="cantidad">Cantidad (kg de cacao seco)</label>
-        <input id="cantidad" name="cantidad" inputmode="decimal" value="{{ datos.get('cantidad', '') }}">
-      </div>
+<header class="encabezado vidrio aparece">
+  <div>
+    <nav class="migas" aria-label="Ruta"><a href="{{ url_for('lotes.lista_lotes') }}">Lotes</a><span aria-hidden="true">/</span><span>Recibir lote</span></nav>
+    <h1 class="titulo">Recibir lote</h1>
+    <p class="subtitulo">Registre el cacao seco que llega de una finca. Todos los campos son obligatorios.</p>
+  </div>
+</header>
+
+{% if error %}
+<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se guardó el lote</b>{{ error }} Lo que escribió se conserva abajo.</div></div>
+{% endif %}
+{% if mensaje %}
+<div class="aviso aviso-exito" role="status">{{ icono('ok') }}<div><b>{{ mensaje }}</b>
+  <a href="{{ url_for('lotes.detalle', codigo=mensaje.split()[1]) }}">Ver su trazabilidad</a> · <a href="{{ url_for('lotes.transformar', codigo=mensaje.split()[1]) }}">Registrar una transformación</a></div></div>
+{% endif %}
+
+<section class="panel vidrio aparece">
+  <form class="formulario" method="post" novalidate>
+    <p class="grupo">{{ icono('mazorca') }}Identificación</p>
+    <div class="campo">
+      <label for="codigo">Código del lote</label>
+      <input class="control" id="codigo" name="codigo" value="{{ datos.get('codigo', '') }}" placeholder="CAC004" autocapitalize="characters" aria-describedby="ayuda-codigo" required>
+      <span class="ayuda" id="ayuda-codigo">Único. Ejemplo: CAC004.</span>
     </div>
-    <button type="submit">Guardar lote</button>
+    <div class="campo">
+      <label for="productor">Productor</label>
+      <input class="control" id="productor" name="productor" value="{{ datos.get('productor', '') }}" placeholder="Productor D" aria-describedby="ayuda-productor" required>
+      <span class="ayuda" id="ayuda-productor">Ficticio en esta demostración.</span>
+    </div>
+
+    <p class="grupo">{{ icono('mapa') }}Origen y cantidad</p>
+    <div class="campo">
+      <label for="origen">Municipio de origen (Huila)</label>
+      <input class="control" id="origen" name="origen" value="{{ datos.get('origen', '') }}" placeholder="Rivera" list="municipios" required>
+      <datalist id="municipios">
+        {% for m in ['Rivera', 'Campoalegre', 'Algeciras', 'Neiva', 'Garzón', 'Gigante', 'La Plata', 'Pitalito'] %}<option value="{{ m }}">{% endfor %}
+      </datalist>
+    </div>
+    <div class="campo">
+      <label for="fecha_recepcion">Fecha de recepción</label>
+      <input class="control" id="fecha_recepcion" name="fecha_recepcion" type="date" value="{{ datos.get('fecha_recepcion', '') }}" required>
+    </div>
+    <div class="campo">
+      <label for="cantidad">Cantidad de cacao seco</label>
+      <div class="con-unidad">
+        <input class="control" id="cantidad" name="cantidad" inputmode="decimal" value="{{ datos.get('cantidad', '') }}" placeholder="100" aria-describedby="ayuda-cantidad" required>
+        <span>kg</span>
+      </div>
+      <span class="ayuda" id="ayuda-cantidad">Debe ser mayor que 0.</span>
+    </div>
+
+    <div class="pie-formulario">
+      <button class="boton boton-primario" type="submit">{{ icono('recibir') }}Guardar lote</button>
+      <a class="boton boton-secundario" href="{{ url_for('lotes.lista_lotes') }}">Cancelar</a>
+    </div>
   </form>
 </section>
 {% endblock %}

@@ -1,56 +1,98 @@
 {% extends "base.html" %}
-{% block titulo %}Transformar {{ codigo }} · Cacao con Historia{% endblock %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Transformar {{ codigo }}{% endblock %}
 {% block contenido %}
-<section class="tarjeta">
-  <div class="encabezado">
-    <h1>Transformar lote {{ codigo }}</h1>
-    <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver trazabilidad</a>
+{% set pct = (inventario.consumido / inventario.recibido * 100) if inventario.recibido else 0 %}
+<header class="encabezado vidrio aparece">
+  <div>
+    <nav class="migas" aria-label="Ruta">
+      <a href="{{ url_for('lotes.lista_lotes') }}">Lotes</a><span aria-hidden="true">/</span>
+      <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">{{ codigo }}</a><span aria-hidden="true">/</span><span>Transformar</span>
+    </nav>
+    <h1 class="titulo">Transformar lote {{ codigo }}</h1>
+    <p class="subtitulo">Una etapa sobre un solo lote. La entrada se descuenta del cacao disponible.</p>
   </div>
-  <p class="destacado">Disponible: <strong>{{ '%g'|format(inventario.disponible) }} kg</strong></p>
+  <a class="boton boton-secundario" href="{{ url_for('lotes.detalle', codigo=codigo) }}">{{ icono('mazorca') }}Ver trazabilidad</a>
+</header>
 
-  <form method="post" novalidate>
+<section class="panel vidrio aparece" aria-labelledby="t-disp">
+  <div class="panel-titulo"><h2 id="t-disp">{{ icono('balanza') }}Disponible en {{ codigo }}</h2><p>Recibido {{ inventario.recibido|kg }} kg · consumido {{ inventario.consumido|kg }} kg</p></div>
+  <div class="inventario" style="grid-template-columns:1fr">
+    <div><b data-disponible="{{ inventario.disponible }}">{{ inventario.disponible|kg }}<small>kg</small></b></div>
+  </div>
+  <div class="barra" aria-hidden="true"><i style="width: {{ '%.1f'|format(pct) }}%"></i></div>
+</section>
+
+{% if error %}
+<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se registró la transformación</b>{{ error }} Lo que escribió se conserva abajo.</div></div>
+{% endif %}
+{% if mensaje %}
+<div class="aviso aviso-exito" role="status">{{ icono('ok') }}<div><b>{{ mensaje }}</b><a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver la trazabilidad y las alertas de {{ codigo }}</a></div></div>
+{% endif %}
+
+<section class="panel vidrio aparece">
+  <form class="formulario" method="post" novalidate data-transformar>
     <input type="hidden" name="op_id" value="{{ op_id }}">
-    <div class="campos">
-      <div>
-        <label for="etapa">Etapa</label>
-        <input id="etapa" name="etapa" value="{{ datos.get('etapa', '') }}" placeholder="Secado">
-      </div>
-      <div>
-        <label for="responsable">Responsable</label>
-        <input id="responsable" name="responsable" value="{{ datos.get('responsable', '') }}">
-      </div>
-      <div>
-        <label for="fecha">Fecha</label>
-        <input id="fecha" name="fecha" type="date" value="{{ datos.get('fecha', '') }}">
-      </div>
-      <div>
-        <label for="producto">Producto resultante</label>
-        <input id="producto" name="producto" value="{{ datos.get('producto', '') }}" placeholder="Cacao seco">
-      </div>
-      <div>
-        <label for="entrada">Entrada (kg)</label>
-        <input id="entrada" name="entrada" inputmode="decimal" value="{{ datos.get('entrada', '') }}">
-      </div>
-      <div>
-        <label for="salida">Salida (kg)</label>
-        <input id="salida" name="salida" inputmode="decimal" value="{{ datos.get('salida', '') }}">
-      </div>
-      <div>
-        <label for="costo_total">Costo total de la etapa (COP)</label>
-        <input id="costo_total" name="costo_total" inputmode="numeric" value="{{ datos.get('costo_total', '') }}">
-      </div>
-      <div>
-        <label for="precio_venta">Precio de venta (COP/kg)</label>
-        <input id="precio_venta" name="precio_venta" inputmode="numeric" value="{{ datos.get('precio_venta', '') }}">
-      </div>
+
+    <p class="grupo">{{ icono('grano') }}Etapa</p>
+    <div class="campo">
+      <label for="etapa">Etapa</label>
+      <input class="control" id="etapa" name="etapa" value="{{ datos.get('etapa', '') }}" placeholder="Secado" list="etapas" required>
+      <datalist id="etapas">{% for e in ['Secado', 'Fermentación', 'Tostión', 'Descascarillado', 'Molienda'] %}<option value="{{ e }}">{% endfor %}</datalist>
     </div>
-    <label for="costos_incluidos">Costos incluidos en el total</label>
-    <input id="costos_incluidos" name="costos_incluidos" value="{{ datos.get('costos_incluidos', '') }}" placeholder="Mano de obra, energía, transporte">
-    <label for="justificacion">Justificación (solo si la salida supera la entrada)</label>
-    <input id="justificacion" name="justificacion" value="{{ datos.get('justificacion', '') }}">
-    <label for="incidencias">Incidencias</label>
-    <textarea id="incidencias" name="incidencias" rows="2">{{ datos.get('incidencias', '') }}</textarea>
-    <button type="submit">Registrar transformación</button>
+    <div class="campo">
+      <label for="responsable">Responsable</label>
+      <input class="control" id="responsable" name="responsable" value="{{ datos.get('responsable', '') }}" required>
+    </div>
+    <div class="campo">
+      <label for="fecha">Fecha</label>
+      <input class="control" id="fecha" name="fecha" type="date" value="{{ datos.get('fecha', '') }}" required>
+    </div>
+    <div class="campo">
+      <label for="producto">Producto resultante</label>
+      <input class="control" id="producto" name="producto" value="{{ datos.get('producto', '') }}" placeholder="Cacao seco" required>
+    </div>
+
+    <p class="grupo">{{ icono('balanza') }}Cantidades</p>
+    <div class="campo">
+      <label for="entrada">Entrada</label>
+      <div class="con-unidad"><input class="control" id="entrada" name="entrada" inputmode="decimal" value="{{ datos.get('entrada', '') }}" aria-describedby="ayuda-entrada" required><span>kg</span></div>
+      <span class="ayuda" id="ayuda-entrada">Máximo {{ inventario.disponible|kg }} kg disponibles.</span>
+    </div>
+    <div class="campo">
+      <label for="salida">Salida vendible</label>
+      <div class="con-unidad"><input class="control" id="salida" name="salida" inputmode="decimal" value="{{ datos.get('salida', '') }}" aria-describedby="ayuda-salida" required><span>kg</span></div>
+      <span class="ayuda" id="ayuda-salida" {% if session.rol == 'admin' %}data-merma-ayuda{% endif %}>Si es 0 kg no se crea producto.</span>
+    </div>
+    <div class="campo ancho">
+      <label for="justificacion">Justificación</label>
+      <input class="control" id="justificacion" name="justificacion" value="{{ datos.get('justificacion', '') }}" aria-describedby="ayuda-just" placeholder="Ej. adición de insumos">
+      <span class="ayuda" id="ayuda-just">Obligatoria solo si la salida supera la entrada.</span>
+    </div>
+
+    <p class="grupo">{{ icono('moneda') }}Costos y precio</p>
+    <div class="campo">
+      <label for="costo_total">Costo total de la etapa</label>
+      <div class="con-unidad"><input class="control" id="costo_total" name="costo_total" inputmode="numeric" value="{{ datos.get('costo_total', '') }}" placeholder="0" required><span>COP</span></div>
+    </div>
+    <div class="campo">
+      <label for="precio_venta">Precio de venta</label>
+      <div class="con-unidad"><input class="control" id="precio_venta" name="precio_venta" inputmode="numeric" value="{{ datos.get('precio_venta', '') }}" required><span>COP/kg</span></div>
+    </div>
+    <div class="campo ancho">
+      <label for="costos_incluidos">Costos incluidos</label>
+      <input class="control" id="costos_incluidos" name="costos_incluidos" value="{{ datos.get('costos_incluidos', '') }}" placeholder="Mano de obra, energía, transporte" aria-describedby="ayuda-costos">
+      <span class="ayuda" id="ayuda-costos">Obligatorio si el costo total es mayor que 0.</span>
+    </div>
+    <div class="campo ancho">
+      <label for="incidencias">Incidencias</label>
+      <textarea class="control" id="incidencias" name="incidencias" placeholder="Opcional">{{ datos.get('incidencias', '') }}</textarea>
+    </div>
+
+    <div class="pie-formulario">
+      <button class="boton boton-primario" type="submit">{{ icono('transformar') }}Registrar transformación</button>
+      <a class="boton boton-secundario" href="{{ url_for('lotes.detalle', codigo=codigo) }}">Cancelar</a>
+    </div>
   </form>
 </section>
 {% endblock %}

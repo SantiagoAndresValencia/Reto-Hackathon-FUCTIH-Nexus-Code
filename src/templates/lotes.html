@@ -1,51 +1,90 @@
 {% extends "base.html" %}
-{% block titulo %}Lotes · Cacao con Historia{% endblock %}
+{% from "_iconos.html" import icono, estado as pildora %}
+{% block titulo %}Lotes{% endblock %}
 {% block contenido %}
-<div class="encabezado">
-  <h1>Lotes recibidos</h1>
-  <a class="boton" href="{{ url_for('lotes.lote_nuevo') }}">+ Recibir lote</a>
-</div>
+{% set total_recibido = lotes|sum(attribute='recibido') %}
+{% set total_disponible = lotes|sum(attribute='disponible') %}
 
-<form class="filtros" method="get" aria-label="Filtrar lotes">
+<header class="encabezado vidrio aparece">
   <div>
-    <label for="origen">Origen</label>
-    <select id="origen" name="origen">
-      <option value="">Todos</option>
-      {% for o in origenes %}<option {{ 'selected' if o == origen }}>{{ o }}</option>{% endfor %}
-    </select>
+    <h1 class="titulo">Lotes y trazabilidad</h1>
+    <p class="subtitulo">Cacao seco recibido de las fincas, lo que se ha transformado y el estado de sus productos.</p>
   </div>
-  <div>
-    <label for="estado">Estado</label>
-    <select id="estado" name="estado">
-      <option value="">Todos</option>
-      {% for e in ['sin producto', 'pendiente', 'liberado', 'bloqueado'] %}
-      <option {{ 'selected' if e == estado }}>{{ e }}</option>
+  <div class="acciones">
+    {% if session.rol == 'admin' %}
+    <a class="boton boton-secundario" href="{{ url_for('productos.exportar', origen=origen, estado=estado) }}">{{ icono('descargar') }}Exportar CSV</a>
+    {% endif %}
+    <a class="boton boton-primario" href="{{ url_for('lotes.lote_nuevo') }}">{{ icono('mas') }}Recibir lote</a>
+  </div>
+</header>
+
+<section class="resumen" aria-label="Resumen del inventario filtrado">
+  <div class="resumen-item vidrio aparece"><span>{{ icono('mazorca') }}Lotes</span><b>{{ lotes|length }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('recibir') }}Recibido</span><b>{{ total_recibido|kg }} <small>kg</small></b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('grano') }}Disponible</span><b>{{ total_disponible|kg }} <small>kg</small></b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('producto') }}Con producto</span><b>{{ lotes|rejectattr('estados', 'equalto', 'sin producto')|list|length }}</b></div>
+</section>
+
+<section class="panel vidrio aparece" aria-labelledby="t-lotes">
+  <div class="panel-titulo">
+    <h2 id="t-lotes">{{ icono('lista') }}Lotes recibidos</h2>
+  </div>
+
+  <form class="filtros" method="get" data-auto-filtro>
+    <div class="campo">
+      <label for="origen">Municipio de origen</label>
+      <select class="control" id="origen" name="origen">
+        <option value="">Todos los municipios</option>
+        {% for o in origenes %}<option {{ 'selected' if o == origen }}>{{ o }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label for="estado">Estado del producto</label>
+      <select class="control" id="estado" name="estado">
+        <option value="">Todos los estados</option>
+        {% for e in ['sin producto', 'pendiente', 'liberado', 'bloqueado'] %}
+        <option value="{{ e }}" {{ 'selected' if e == estado }}>{{ e|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Filtrar</button>
+    {% if origen or estado %}<a class="boton boton-secundario" href="{{ url_for('lotes.lista_lotes') }}">Quitar filtros</a>{% endif %}
+  </form>
+
+  <hr class="separador">
+
+  <div class="tabla-envoltura" aria-live="polite">
+    <table class="tabla tabla-apilable">
+      <caption class="sr-only">Lotes{% if origen %} de {{ origen }}{% endif %}{% if estado %} con estado {{ estado }}{% endif %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Lote</th><th scope="col">Origen</th><th scope="col">Recepción</th>
+          <th scope="col" class="num">Recibido</th><th scope="col">Consumo</th><th scope="col" class="num">Disponible</th>
+          <th scope="col">Productos</th><th scope="col"><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for l in lotes %}
+        {% set pct = (l.consumido / l.recibido * 100) if l.recibido else 0 %}
+        <tr>
+          <td data-etiqueta="Lote"><a class="codigo" href="{{ url_for('lotes.detalle', codigo=l.codigo) }}">{{ icono('mazorca') }}{{ l.codigo }}</a></td>
+          <td data-etiqueta="Origen">{{ l.origen }}</td>
+          <td data-etiqueta="Recepción">{{ l.fecha_recepcion }}</td>
+          <td data-etiqueta="Recibido" class="num">{{ l.recibido|kg }} {{ l.unidad }}</td>
+          <td data-etiqueta="Consumo">
+            <div class="consumo"><div class="barra" aria-hidden="true"><i style="width: {{ '%.1f'|format(pct) }}%"></i></div><small>{{ '%.0f'|format(pct) }} %</small></div>
+          </td>
+          <td data-etiqueta="Disponible" class="num"><b>{{ l.disponible|kg }} {{ l.unidad }}</b></td>
+          <td data-etiqueta="Productos"><span class="estados">{% for e in l.estados.split(',') %}{{ pildora(e if e != 'sin producto' else '') }}{% endfor %}</span></td>
+          <td class="sin-etiqueta num">
+            {% if l.disponible > 0 %}<a href="{{ url_for('lotes.transformar', codigo=l.codigo) }}">Transformar<span class="sr-only"> {{ l.codigo }}</span></a>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="sin-etiqueta"><p class="vacio">{{ icono('info') }}No hay lotes con esos filtros. Cambie el municipio o el estado, o reciba un lote nuevo.</p></td></tr>
       {% endfor %}
-    </select>
+      </tbody>
+    </table>
   </div>
-  <button type="submit" class="secundario">Filtrar</button>
-  {% if session.rol == 'admin' %}
-  <a class="boton secundario" href="{{ url_for('productos.exportar', origen=origen, estado=estado) }}">Exportar CSV</a>
-  {% endif %}
-</form>
-
-<div class="tabla-scroll">
-  <table>
-    <thead><tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th><th>Estado</th><th></th></tr></thead>
-    <tbody>
-    {% for l in lotes %}
-    <tr>
-      <td><a href="{{ url_for('lotes.detalle', codigo=l.codigo) }}"><strong>{{ l.codigo }}</strong></a></td>
-      <td>{{ l.origen }}</td>
-      <td>{{ '%g'|format(l.recibido) }} {{ l.unidad }}</td>
-      <td>{{ '%g'|format(l.disponible) }} {{ l.unidad }}</td>
-      <td>{% for e in l.estados.split(',') %}<span class="estado estado-{{ e|replace(' ', '-') }}">{{ e }}</span> {% endfor %}</td>
-      <td>{% if l.disponible > 0 %}<a href="{{ url_for('lotes.transformar', codigo=l.codigo) }}">Transformar</a>{% endif %}</td>
-    </tr>
-    {% else %}
-    <tr><td colspan="6">No hay lotes con esos filtros.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+</section>
 {% endblock %}
