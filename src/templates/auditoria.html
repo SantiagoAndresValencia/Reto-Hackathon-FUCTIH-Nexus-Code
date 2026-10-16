@@ -1,21 +1,20 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Auditoría</title>
-</head>
-<body>
-  <h1>Auditoría</h1>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
-  <form method="get">
-    <label for="q">Lote o producto</label> <input id="q" name="q" value="{{ q }}">
-    <button type="submit">Buscar</button>
-  </form>
-  <table border="1" cellpadding="6">
-    <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Campo</th><th>Antes</th><th>Después</th></tr>
+{% extends "base.html" %}
+{% block titulo %}Auditoría · Cacao con Historia{% endblock %}
+{% block contenido %}
+<h1>Auditoría{% if q %} de {{ q }}{% endif %}</h1>
+<form class="filtros" method="get">
+  <div>
+    <label for="q">Lote o producto</label>
+    <input id="q" name="q" value="{{ q }}" placeholder="CAC001">
+  </div>
+  <button type="submit" class="secundario">Buscar</button>
+</form>
+<div class="tabla-scroll">
+  <table>
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Campo</th><th>Antes</th><th>Después</th></tr></thead>
+    <tbody>
     {% for a in filas %}
-    <tr>
+    <tr class="{{ 'denegado' if a.accion.startswith('DENEGADO') }}">
       <td>{{ a.fecha }}</td><td>{{ a.usuario }}</td><td>{{ a.accion }}</td>
       <td>{{ a.entidad }} {{ a.entidad_id }}</td><td>{{ a.campo }}</td>
       <td>{{ a.valor_anterior }}</td><td>{{ a.valor_nuevo }}</td>
@@ -23,6 +22,8 @@
     {% else %}
     <tr><td colspan="7">Sin registros.</td></tr>
     {% endfor %}
+    </tbody>
   </table>
-</body>
-</html>
+</div>
+<p class="nota">El historial no se puede borrar ni modificar.</p>
+{% endblock %}

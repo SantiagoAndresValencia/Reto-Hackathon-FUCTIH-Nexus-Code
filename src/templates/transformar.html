@@ -1,43 +1,56 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Transformar {{ codigo }}</title>
-</head>
-<body>
-  <h1>Transformar lote {{ codigo }}</h1>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a> · <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver trazabilidad</a></p>
-  <p>Disponible: <strong>{{ '%g'|format(inventario.disponible) }} kg</strong></p>
-
-  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-  {% if mensaje %}<p style="color:green">{{ mensaje }}</p>{% endif %}
+{% extends "base.html" %}
+{% block titulo %}Transformar {{ codigo }} · Cacao con Historia{% endblock %}
+{% block contenido %}
+<section class="tarjeta">
+  <div class="encabezado">
+    <h1>Transformar lote {{ codigo }}</h1>
+    <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver trazabilidad</a>
+  </div>
+  <p class="destacado">Disponible: <strong>{{ '%g'|format(inventario.disponible) }} kg</strong></p>
 
   <form method="post" novalidate>
     <input type="hidden" name="op_id" value="{{ op_id }}">
-    <p><label for="etapa">Etapa</label><br>
-       <input id="etapa" name="etapa" value="{{ datos.get('etapa', '') }}" placeholder="Secado"></p>
-    <p><label for="responsable">Responsable</label><br>
-       <input id="responsable" name="responsable" value="{{ datos.get('responsable', '') }}"></p>
-    <p><label for="fecha">Fecha</label><br>
-       <input id="fecha" name="fecha" type="date" value="{{ datos.get('fecha', '') }}"></p>
-    <p><label for="entrada">Entrada (kg)</label><br>
-       <input id="entrada" name="entrada" value="{{ datos.get('entrada', '') }}"></p>
-    <p><label for="salida">Salida (kg)</label><br>
-       <input id="salida" name="salida" value="{{ datos.get('salida', '') }}"></p>
-    <p><label for="producto">Producto resultante</label><br>
-       <input id="producto" name="producto" value="{{ datos.get('producto', '') }}" placeholder="Cacao seco"></p>
-    <p><label for="costo_total">Costo total de la etapa (COP)</label><br>
-       <input id="costo_total" name="costo_total" value="{{ datos.get('costo_total', '') }}"></p>
-    <p><label for="costos_incluidos">Costos incluidos</label><br>
-       <input id="costos_incluidos" name="costos_incluidos" value="{{ datos.get('costos_incluidos', '') }}" placeholder="Mano de obra, energía, transporte"></p>
-    <p><label for="precio_venta">Precio de venta (COP/kg)</label><br>
-       <input id="precio_venta" name="precio_venta" value="{{ datos.get('precio_venta', '') }}"></p>
-    <p><label for="justificacion">Justificación (solo si la salida supera la entrada)</label><br>
-       <input id="justificacion" name="justificacion" value="{{ datos.get('justificacion', '') }}"></p>
-    <p><label for="incidencias">Incidencias</label><br>
-       <input id="incidencias" name="incidencias" value="{{ datos.get('incidencias', '') }}"></p>
+    <div class="campos">
+      <div>
+        <label for="etapa">Etapa</label>
+        <input id="etapa" name="etapa" value="{{ datos.get('etapa', '') }}" placeholder="Secado">
+      </div>
+      <div>
+        <label for="responsable">Responsable</label>
+        <input id="responsable" name="responsable" value="{{ datos.get('responsable', '') }}">
+      </div>
+      <div>
+        <label for="fecha">Fecha</label>
+        <input id="fecha" name="fecha" type="date" value="{{ datos.get('fecha', '') }}">
+      </div>
+      <div>
+        <label for="producto">Producto resultante</label>
+        <input id="producto" name="producto" value="{{ datos.get('producto', '') }}" placeholder="Cacao seco">
+      </div>
+      <div>
+        <label for="entrada">Entrada (kg)</label>
+        <input id="entrada" name="entrada" inputmode="decimal" value="{{ datos.get('entrada', '') }}">
+      </div>
+      <div>
+        <label for="salida">Salida (kg)</label>
+        <input id="salida" name="salida" inputmode="decimal" value="{{ datos.get('salida', '') }}">
+      </div>
+      <div>
+        <label for="costo_total">Costo total de la etapa (COP)</label>
+        <input id="costo_total" name="costo_total" inputmode="numeric" value="{{ datos.get('costo_total', '') }}">
+      </div>
+      <div>
+        <label for="precio_venta">Precio de venta (COP/kg)</label>
+        <input id="precio_venta" name="precio_venta" inputmode="numeric" value="{{ datos.get('precio_venta', '') }}">
+      </div>
+    </div>
+    <label for="costos_incluidos">Costos incluidos en el total</label>
+    <input id="costos_incluidos" name="costos_incluidos" value="{{ datos.get('costos_incluidos', '') }}" placeholder="Mano de obra, energía, transporte">
+    <label for="justificacion">Justificación (solo si la salida supera la entrada)</label>
+    <input id="justificacion" name="justificacion" value="{{ datos.get('justificacion', '') }}">
+    <label for="incidencias">Incidencias</label>
+    <textarea id="incidencias" name="incidencias" rows="2">{{ datos.get('incidencias', '') }}</textarea>
     <button type="submit">Registrar transformación</button>
   </form>
-</body>
-</html>
+</section>
+{% endblock %}

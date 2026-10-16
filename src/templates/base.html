@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Cacao con Historia{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+  <header class="barra">
+    <a class="marca" href="{{ url_for('lotes.lista_lotes') }}">Cacao con Historia</a>
+    {% if session.usuario %}
+    <nav aria-label="Principal">
+      <a href="{{ url_for('lotes.lista_lotes') }}">Lotes</a>
+      <a href="{{ url_for('lotes.lote_nuevo') }}">Recibir lote</a>
+      {% if session.rol == 'admin' %}
+      <a href="{{ url_for('auth.auditoria') }}">Auditoría</a>
+      {% endif %}
+      <span class="quien">{{ session.usuario }} · {{ session.rol }}</span>
+      <a href="{{ url_for('auth.logout') }}">Salir</a>
+    </nav>
+    {% endif %}
+  </header>
+  <main id="contenido">
+    {% if error %}<p class="aviso aviso-error" role="alert">{{ error }}</p>{% endif %}
+    {% if mensaje %}<p class="aviso aviso-ok" role="status">{{ mensaje }}</p>{% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>
