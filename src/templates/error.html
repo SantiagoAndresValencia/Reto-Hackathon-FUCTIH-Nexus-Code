@@ -9,7 +9,7 @@
   {% if session.usuario %}
   <a class="boton boton-primario" href="{{ url_for('lotes.lista_lotes') }}">{{ icono('atras') }}Volver a los lotes</a>
   {% else %}
-  <a class="boton boton-primario" href="{{ url_for('productos.consultar') }}">{{ icono('atras') }}Consultar un producto</a>
+  <a class="boton boton-primario" href="{{ url_for('productos.comprador') }}">{{ icono('atras') }}Ver productos disponibles</a>
   {% endif %}
 </section>
 {% endblock %}

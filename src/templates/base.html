@@ -31,7 +31,7 @@
         <span class="nav-titulo">Operación</span>
         <a href="{{ url_for('lotes.lista_lotes') }}" {% if ep in ('lotes.lista_lotes', 'lotes.detalle', 'lotes.transformar') %}aria-current="page"{% endif %}>{{ icono('lista') }}Lotes y trazabilidad</a>
         <a href="{{ url_for('lotes.lote_nuevo') }}" {% if ep == 'lotes.lote_nuevo' %}aria-current="page"{% endif %}>{{ icono('recibir') }}Recibir lote</a>
-        <a href="{{ url_for('productos.consultar') }}">{{ icono('ficha') }}Consultar producto</a>
+        <a href="{{ url_for('productos.comprador') }}">{{ icono('ficha') }}Vista del comprador</a>
         {% if session.rol == 'admin' %}
         <span class="nav-titulo">Administración</span>
         <a href="{{ url_for('auth.auditoria') }}" {% if ep == 'auth.auditoria' %}aria-current="page"{% endif %}>{{ icono('escudo') }}Auditoría</a>

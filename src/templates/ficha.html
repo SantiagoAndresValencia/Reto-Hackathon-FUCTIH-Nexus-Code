@@ -32,10 +32,12 @@
 
 <section class="panel vidrio aparece" aria-labelledby="t-otra">
   <h2 class="panel-titulo" id="t-otra" style="margin-bottom:12px">Consultar otro producto</h2>
-  <form class="consulta" method="get" action="{{ url_for('productos.consultar') }}">
+  <form class="consulta" method="get" action="{{ url_for('productos.comprador') }}">
     <label class="sr-only" for="codigo">Código del producto</label>
     <input class="control" id="codigo" name="codigo" placeholder="P-CAC001-1" autocapitalize="characters">
     <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Consultar</button>
   </form>
+  <hr class="separador">
+  <a href="{{ url_for('productos.comprador') }}">{{ icono('atras') }}Volver a los productos disponibles</a>
 </section>
 {% endblock %}
