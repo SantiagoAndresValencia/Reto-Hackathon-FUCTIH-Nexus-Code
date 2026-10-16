@@ -22,3 +22,13 @@ def test_operador_no_entra_a_auditoria_y_queda_registrado(cliente):
     cliente.get("/logout")
     ingresar(cliente, "admin")
     assert "DENEGADO" in cliente.get("/admin/auditoria").get_data(as_text=True)
+
+
+def test_cookie_falsificada_con_clave_antigua_no_entra(cliente):
+    from flask import Flask
+    atacante = Flask("atacante")
+    atacante.secret_key = "solo-para-desarrollo"
+    galleta = atacante.session_interface.get_signing_serializer(atacante).dumps(
+        {"usuario": "intruso", "rol": "admin"})
+    cliente.set_cookie("session", galleta)
+    assert cliente.get("/admin/auditoria").status_code == 302

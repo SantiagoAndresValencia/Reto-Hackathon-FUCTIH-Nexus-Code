@@ -49,16 +49,25 @@ def resumen_csv(db, origen="", estado=""):
     escritor.writerow(["codigo", "origen", "recibido_kg", "consumido_kg", "disponible_kg",
                        "estados", "costo_total_cop"])
     for l in filtrar_lotes(db, origen, estado):
-        escritor.writerow([l["codigo"], l["origen"], l["recibido"], l["consumido"],
-                           l["disponible"], l["estados"], l["costo_total"]])
+        escritor.writerow([_celda_segura(l["codigo"]), _celda_segura(l["origen"]), l["recibido"],
+                           l["consumido"], l["disponible"], l["estados"], l["costo_total"]])
     return salida.getvalue()
+
+
+def _celda_segura(valor):
+    if str(valor).startswith(("=", "+", "-", "@")):
+        return "'" + str(valor)
+    return valor
 
 
 @bp_productos.route("/productos/<codigo>/estado", methods=["POST"])
 @login_requerido
 def estado(codigo):
     db = obtener_db()
-    lote = request.form.get("lote", "")
+    fila = db.execute("SELECT lote_codigo FROM productos WHERE codigo = ?", (codigo,)).fetchone()
+    if fila is None:
+        abort(404)
+    lote = fila["lote_codigo"]
     try:
         cambiar_estado(db, g.usuario, g.rol, codigo, request.form.get("estado"), request.form.get("motivo"))
     except PermisoDenegado:

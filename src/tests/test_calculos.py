@@ -46,3 +46,8 @@ def test_margen_sin_costo_es_none():
 
 def test_margen_precio_cero_no_divide():
     assert margen(0, 20_000) is None
+
+def test_precio_sugerido():
+    from src.calculos import precio_sugerido
+    assert round(precio_sugerido(20000, 30)) == 28571
+    assert precio_sugerido(None) is None
