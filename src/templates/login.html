@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar</title>
+</head>
+<body>
+  <h1>Ingresar</h1>
+  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+  <form method="post">
+    <p><label for="usuario">Usuario</label><br><input id="usuario" name="usuario" autofocus></p>
+    <p><label for="clave">Contraseña</label><br><input id="clave" name="clave" type="password"></p>
+    <button type="submit">Ingresar</button>
+  </form>
+</body>
+</html>
