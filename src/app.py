@@ -25,6 +25,15 @@ app.config["SECRET_KEY"] = os.environ.get("CACAO_SECRET") or secrets.token_hex(3
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.teardown_appcontext(cerrar_db)
+
+
+@app.url_defaults
+def version_de_estaticos(endpoint, valores):
+    """kaoka.css?v=<fecha de modificación>: al cambiar el archivo (o de rama) el navegador pide la copia nueva."""
+    if endpoint == "static" and "filename" in valores:
+        ruta = os.path.join(app.static_folder, valores["filename"])
+        if os.path.isfile(ruta):
+            valores["v"] = int(os.stat(ruta).st_mtime)
 app.jinja_env.globals["MUNICIPIOS_HUILA"] = MUNICIPIOS_HUILA
 app.register_blueprint(bp_auth)
 app.register_blueprint(bp_lotes)

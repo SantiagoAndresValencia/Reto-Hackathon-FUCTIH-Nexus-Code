@@ -5,7 +5,7 @@ from flask import Blueprint, abort, g, render_template, request
 
 from src.auditoria import registrar
 from src.auth import login_requerido
-from src.calculos import MARGEN_OBJETIVO, alertas_de, calcular_merma, costo_unitario, margen, precio_sugerido
+from src.calculos import MARGEN_OBJETIVO, UMBRAL_MERMA, alertas_de, calcular_merma, costo_unitario, margen, precio_sugerido
 from src.db import obtener_db
 from src.validaciones import ErrorValidacion, fecha, numero_no_negativo, numero_positivo, texto
 
@@ -193,4 +193,5 @@ def transformar(codigo):
 
     op_id = datos.get("op_id") or str(uuid.uuid4())
     return render_template("transformar.html", codigo=codigo, inventario=inventario,
-                           datos=datos, op_id=op_id, mensaje=mensaje, error=error)
+                           datos=datos, op_id=op_id, mensaje=mensaje, error=error,
+                           umbral_merma=UMBRAL_MERMA, margen_objetivo=MARGEN_OBJETIVO)
