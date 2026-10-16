@@ -5,7 +5,7 @@ import click
 from flask import Flask, redirect, render_template, url_for
 from werkzeug.security import generate_password_hash
 
-from src import respaldo
+from src import casos, respaldo
 from src.auth import bp_auth
 from src.db import cerrar_db, crear_tablas, obtener_db
 from src.lotes import bp_lotes, crear_lote
@@ -40,6 +40,7 @@ app.register_blueprint(bp_lotes)
 app.register_blueprint(bp_productos)
 app.register_blueprint(bp_pedidos)
 respaldo.registrar_comandos(app)
+casos.registrar_comando(app)
 crear_tablas()
 
 

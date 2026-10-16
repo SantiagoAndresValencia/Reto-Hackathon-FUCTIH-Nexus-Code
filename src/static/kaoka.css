@@ -209,6 +209,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .estado-pendiente { color: var(--pendiente); background: var(--pendiente-bg); }
 .estado-liberado { color: var(--liberado); background: var(--liberado-bg); }
 .estado-bloqueado { color: var(--bloqueado); background: var(--bloqueado-bg); }
+.estado-envio { color: var(--hoja-fuerte); background: var(--hoja-suave); box-shadow: inset 0 0 0 1px var(--hoja); }
 .estado-sin { color: var(--sin); background: var(--sin-bg); }
 
 /* ---------- Mensajes ---------- */
@@ -506,6 +507,16 @@ textarea.control { min-height: 84px; resize: vertical; }
 .total-pedido b { font: 700 22px/1.2 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-align: right; }
 .total-pedido small { grid-column: 1 / -1; font-size: 12.5px; color: var(--espresso-3); }
 .pedido-form { margin-top: 18px; grid-template-columns: 1fr; }
+.pasos-pedido { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 18px 24px 4px; }
+.pasos-pedido li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.pasos-pedido li + li::before { content: ""; position: absolute; top: 17px; right: calc(50% + 22px); width: calc(100% - 38px); height: 2px; background: var(--linea); }
+.pasos-pedido li.hecho + li::before, .pasos-pedido li.hecho + li.actual::before { background: var(--hoja); }
+.pasos-pedido .ic { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; border: 1.5px solid var(--linea); color: var(--espresso-3); background: #fff; }
+.pasos-pedido .ic svg { width: 19px; height: 19px; }
+.pasos-pedido .hecho .ic { border-color: var(--hoja); color: var(--hoja); background: var(--hoja-suave); }
+.pasos-pedido .actual .ic { border-color: var(--hoja); background: var(--hoja); color: #fff; }
+.pasos-pedido small { font-size: 12.5px; color: var(--espresso-3); }
+.pasos-pedido .actual small, .pasos-pedido .hecho small { color: var(--espresso); font-weight: 600; }
 .pedido-explica { padding: 16px 24px 4px; font-size: 14px; color: var(--espresso-2); text-align: center; }
 .pasaporte .datos + .datos, .pasaporte .pedido-explica + .datos { padding-top: 16px; }
 

@@ -2,11 +2,12 @@
 {% from "_iconos.html" import icono %}
 {% block titulo %}Pedidos{% endblock %}
 {% block contenido %}
-{% set etiquetas = {'pendiente': ('pendiente', 'Pendiente'), 'aprobado': ('liberado', 'Aprobado'), 'rechazado': ('bloqueado', 'Rechazado'), 'cancelado': ('sin', 'Cancelado')} %}
+{% set etiquetas = {'pendiente': ('pendiente', 'Pendiente'), 'aprobado': ('liberado', 'Aprobado'), 'enviado': ('envio', 'Enviado'),
+                     'entregado': ('liberado', 'Entregado'), 'rechazado': ('bloqueado', 'Rechazado'), 'cancelado': ('sin', 'Cancelado')} %}
 <header class="encabezado vidrio aparece">
   <div>
     <h1 class="titulo">Pedidos de compradores</h1>
-    <p class="subtitulo">Usted da el visto bueno final: apruebe el pedido para despacharlo o recházelo con un motivo.</p>
+    <p class="subtitulo">Usted da el visto bueno final: apruebe el pedido, márquelo como enviado y registre la entrega, o recházelo con un motivo.</p>
   </div>
 </header>
 
@@ -16,13 +17,14 @@
 
 <section class="resumen" aria-label="Resumen de pedidos">
   <div class="resumen-item vidrio aparece"><span>{{ icono('reloj') }}Por revisar</span><b>{{ conteo.get('pendiente', 0) }}</b></div>
-  <div class="resumen-item vidrio aparece"><span>{{ icono('ok') }}Aprobados</span><b>{{ conteo.get('aprobado', 0) }}</b></div>
-  <div class="resumen-item vidrio aparece"><span>{{ icono('bloqueo') }}Rechazados o cancelados</span><b>{{ conteo.get('rechazado', 0) + conteo.get('cancelado', 0) }}</b></div>
-  <div class="resumen-item vidrio aparece"><span>{{ icono('balanza') }}Apartado</span><b>{{ apartado|kg }} <small>kg</small></b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('ok') }}Por enviar</span><b>{{ conteo.get('aprobado', 0) }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('camion') }}En camino</span><b>{{ conteo.get('enviado', 0) }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('producto') }}Entregados</span><b>{{ conteo.get('entregado', 0) }}</b></div>
 </section>
 
 <section class="panel vidrio aparece" aria-labelledby="t-pedidos">
-  <div class="panel-titulo"><h2 id="t-pedidos">{{ icono('lista') }}Pedidos</h2></div>
+  <div class="panel-titulo"><h2 id="t-pedidos">{{ icono('lista') }}Pedidos</h2>
+    <p>{{ conteo.get('rechazado', 0) + conteo.get('cancelado', 0) }} rechazados o cancelados · {{ apartado|kg }} kg en curso</p></div>
   <form class="filtros" method="get" data-auto-filtro>
     <div class="campo">
       <label for="estado">Estado del pedido</label>
@@ -44,7 +46,7 @@
         <div>
           <b class="codigo">{{ d.numero }}</b>
           <span class="estado estado-{{ etiquetas[d.estado][0] }}">{{ etiquetas[d.estado][1] }}</span>
-          {% if d.estado in ('pendiente', 'aprobado') and d.estado_producto != 'liberado' %}
+          {% if d.estado in ('pendiente', 'aprobado', 'enviado') and d.estado_producto != 'liberado' %}
           <span class="estado estado-bloqueado">Producto {{ d.estado_producto }}</span>
           {% endif %}
         </div>
@@ -58,17 +60,22 @@
         <div><dt>Total</dt><dd>{{ d.total|miles }} COP<br><small>{{ d.precio_kg|miles }} COP/{{ d.unidad }}</small></dd></div>
       </dl>
       {% if d.motivo_estado %}
-      <p class="pedido-motivo"><b>{{ 'Razón del comprador' if d.estado == 'cancelado' else 'Motivo' }}:</b> {{ d.motivo_estado }}</p>
+      <p class="pedido-motivo"><b>{{ {'cancelado': 'Razón del comprador', 'enviado': 'Envío', 'entregado': 'Entrega'}.get(d.estado, 'Motivo') }}:</b> {{ d.motivo_estado }}</p>
       {% endif %}
-      {% if d.estado in ('pendiente', 'aprobado') %}
-      <form class="estado-form" method="post" action="{{ url_for('pedidos.estado', numero=d.numero) }}" data-estado-form="Escriba el motivo antes de aprobar o rechazar.">
+      {% if d.estado in ('pendiente', 'aprobado', 'enviado') %}
+      {% set guia = {'pendiente': ('Motivo de la decisión sobre', 'Ej. Pago confirmado'),
+                     'aprobado': ('Datos del envío de', 'Ej. Transportadora y número de guía'),
+                     'enviado': ('Datos de la entrega de', 'Ej. Recibió Ana Gómez en bodega')}[d.estado] %}
+      <form class="estado-form" method="post" action="{{ url_for('pedidos.estado', numero=d.numero) }}" data-estado-form="Escriba el motivo antes de continuar.">
         <div class="campo">
-          <label for="motivo-{{ d.id }}">Motivo de la decisión sobre {{ d.numero }}</label>
-          <input class="control" id="motivo-{{ d.id }}" name="motivo" required aria-describedby="ayuda-{{ d.id }}" placeholder="{{ 'Ej. Pago confirmado' if d.estado == 'pendiente' else 'Ej. El comprador no respondió' }}">
+          <label for="motivo-{{ d.id }}">{{ guia[0] }} {{ d.numero }}</label>
+          <input class="control" id="motivo-{{ d.id }}" name="motivo" required aria-describedby="ayuda-{{ d.id }}" placeholder="{{ guia[1] }}">
           <span class="ayuda" id="ayuda-{{ d.id }}">Obligatorio. Queda en la auditoría y lo ve el comprador.</span>
         </div>
         {% if d.estado == 'pendiente' %}<button class="boton boton-primario" name="estado" value="aprobado">{{ icono('ok') }}Aprobar</button>{% endif %}
-        <button class="boton boton-peligro" name="estado" value="rechazado">{{ icono('bloqueo') }}Rechazar</button>
+        {% if d.estado == 'aprobado' %}<button class="boton boton-primario" name="estado" value="enviado">{{ icono('camion') }}Marcar como enviado</button>{% endif %}
+        {% if d.estado == 'enviado' %}<button class="boton boton-primario" name="estado" value="entregado">{{ icono('producto') }}Registrar entrega</button>{% endif %}
+        {% if d.estado != 'enviado' %}<button class="boton boton-peligro" name="estado" value="rechazado">{{ icono('bloqueo') }}Rechazar</button>{% endif %}
       </form>
       {% endif %}
     </li>

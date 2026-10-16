@@ -12,8 +12,10 @@ from src.validaciones import ErrorValidacion, correo, municipio_huila, numero_po
 
 bp_pedidos = Blueprint("pedidos", __name__)
 
-ESTADOS_ADMIN = ("aprobado", "rechazado")
-ACTIVOS = ("pendiente", "aprobado")
+# Estado al que pasa el pedido -> estados desde los que el administrador puede llevarlo ahí
+DESDE = {"aprobado": ("pendiente",), "rechazado": ("pendiente", "aprobado"),
+         "enviado": ("aprobado",), "entregado": ("enviado",)}
+ACTIVOS = ("pendiente", "aprobado")  # el comprador aún puede cancelar
 COLUMNAS = ("SELECT d.*, printf('PED-%04d', d.id) AS numero, d.kilos * d.precio_kg AS total, "
             "p.nombre, p.unidad, p.estado AS estado_producto, p.lote_codigo "
             "FROM pedidos d JOIN productos p ON p.codigo = d.producto_codigo ")
@@ -75,19 +77,41 @@ def cancelar_pedido(db, token, motivo):
                   "estado", pedido["estado"], "cancelado")
 
 
+def confirmar_recibido(db, token, comentario):
+    """El comprador confirma que le llegó un pedido enviado."""
+    pedido = pedido_por_token(db, token)
+    if pedido is None:
+        raise ErrorValidacion("El pedido no existe.")
+    if pedido["estado"] != "enviado":
+        raise ErrorValidacion(f"El pedido está {pedido['estado']}: solo se confirma la entrega de un pedido enviado.")
+    nota = (comentario or "").strip() or "Recibido por el comprador"
+    with db:
+        db.execute("UPDATE pedidos SET estado = 'entregado', motivo_estado = ?, "
+                   "actualizado_en = datetime('now', 'localtime') WHERE id = ?", (nota, pedido["id"]))
+        registrar(db, "comprador", f"confirmar recibido ({nota})", "pedido", pedido["numero"],
+                  "estado", "enviado", "entregado")
+
+
+def historial_pedido(db, numero):
+    """Lo que vio el comprador: creación y cambios de estado, sin los intentos denegados del personal."""
+    return db.execute("SELECT * FROM auditoria WHERE entidad = 'pedido' AND entidad_id = ? "
+                      "AND accion NOT LIKE 'DENEGADO%' ORDER BY id", (numero,)).fetchall()
+
+
 def cambiar_estado_pedido(db, usuario, rol, numero, estado, motivo):
     exigir_admin(db, usuario, rol, f"pedido {estado}", "pedido", numero)
-    if estado not in ESTADOS_ADMIN:
+    if estado not in DESDE:
         raise ErrorValidacion("Estado no válido.")
     motivo = texto(motivo, "Motivo")
     pedido = db.execute(COLUMNAS + "WHERE d.id = ?", (numero_a_id(numero),)).fetchone()
     if pedido is None:
         raise ErrorValidacion(f"El pedido {numero} no existe.")
-    if pedido["estado"] not in ACTIVOS:
-        raise ErrorValidacion(f"El pedido {numero} ya está {pedido['estado']}: no se puede cambiar.")
-    if estado == "aprobado" and pedido["estado_producto"] != "liberado":
+    if pedido["estado"] not in DESDE[estado]:
+        raise ErrorValidacion(f"El pedido {numero} está {pedido['estado']}: no se puede pasar a {estado}.")
+    if estado in ("aprobado", "enviado") and pedido["estado_producto"] != "liberado":
+        accion = "aprobar" if estado == "aprobado" else "enviar"
         raise ErrorValidacion(f"El producto {pedido['producto_codigo']} está {pedido['estado_producto']}: "
-                              "libérelo antes de aprobar el pedido.")
+                              f"libérelo antes de {accion} el pedido.")
     with db:
         db.execute("UPDATE pedidos SET estado = ?, motivo_estado = ?, "
                    "actualizado_en = datetime('now', 'localtime') WHERE id = ?", (estado, motivo, pedido["id"]))
@@ -115,7 +139,16 @@ def seguimiento(token):
     if pedido is None:
         abort(404)
     return render_template("pedido.html", p=pedido, nuevo=request.args.get("nuevo"),
-                           error=request.args.get("error"))
+                           error=request.args.get("error"), historial=historial_pedido(obtener_db(), pedido["numero"]))
+
+
+@bp_pedidos.route("/pedido/<token>/recibido", methods=["POST"])
+def recibido(token):
+    try:
+        confirmar_recibido(obtener_db(), token, request.form.get("comentario"))
+    except ErrorValidacion as e:
+        return redirect(url_for("pedidos.seguimiento", token=token, error=str(e)))
+    return redirect(url_for("pedidos.seguimiento", token=token))
 
 
 @bp_pedidos.route("/pedido/<token>/cancelar", methods=["POST"])
@@ -152,7 +185,8 @@ def lista():
         parametros.append(estado)
     pedidos = db.execute(consulta + "ORDER BY d.estado != 'pendiente', d.id DESC", parametros).fetchall()
     conteo = dict(db.execute("SELECT estado, COUNT(*) FROM pedidos GROUP BY estado").fetchall())
-    apartado = db.execute("SELECT COALESCE(SUM(kilos), 0) FROM pedidos WHERE estado IN ('pendiente', 'aprobado')").fetchone()[0]
+    apartado = db.execute("SELECT COALESCE(SUM(kilos), 0) FROM pedidos "
+                          "WHERE estado IN ('pendiente', 'aprobado', 'enviado')").fetchone()[0]
     return render_template("pedidos.html", pedidos=pedidos, conteo=conteo, apartado=apartado,
                            estado=estado, error=request.args.get("error"))
 

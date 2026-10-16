@@ -5,6 +5,8 @@
 {% set textos = {
   'pendiente': ('reloj', 'Esperando aprobación', 'El administrador de la asociación revisará su pedido y dará el visto bueno para el despacho.'),
   'aprobado': ('ok', 'Pedido aprobado', 'El administrador dio el visto bueno: el pedido queda listo para el despacho.'),
+  'enviado': ('camion', 'Pedido enviado', 'El pedido va en camino. Cuando lo reciba, confírmelo abajo.'),
+  'entregado': ('ok', 'Pedido entregado', 'La entrega quedó registrada. Gracias por su compra.'),
   'rechazado': ('bloqueo', 'Pedido rechazado', 'El administrador no aprobó este pedido.'),
   'cancelado': ('bloqueo', 'Pedido cancelado', 'Usted canceló este pedido.'),
 } %}
@@ -14,7 +16,7 @@
 <div class="aviso aviso-exito" role="status">{{ icono('ok') }}<div><b>Pedido {{ p.numero }} registrado</b>Guarde este enlace o anote el número para consultarlo después.</div></div>
 {% endif %}
 {% if error %}
-<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se pudo cancelar</b>{{ error }}</div></div>
+<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se pudo actualizar el pedido</b>{{ error }}</div></div>
 {% endif %}
 
 <article class="pasaporte vidrio aparece" aria-labelledby="t-pedido">
@@ -23,8 +25,21 @@
     <h1 id="t-pedido">Pedido {{ p.numero }}</h1>
     <p>{{ p.nombre }} · {{ p.producto_codigo }}</p>
   </header>
-  <p class="sello sello-{{ {'pendiente': 'pendiente', 'aprobado': 'liberado'}.get(p.estado, 'bloqueado') }}" role="status">{{ icono(t[0]) }}{{ t[1] }}</p>
-  <p class="pedido-explica">{{ t[2] }}{% if p.motivo_estado %} <b>{{ 'Razón' if p.estado == 'cancelado' else 'Motivo' }}:</b> {{ p.motivo_estado }}{% endif %}</p>
+  <p class="sello sello-{{ {'pendiente': 'pendiente', 'aprobado': 'liberado', 'enviado': 'liberado', 'entregado': 'liberado'}.get(p.estado, 'bloqueado') }}" role="status">{{ icono(t[0]) }}{{ t[1] }}</p>
+  <p class="pedido-explica">{{ t[2] }}{% if p.motivo_estado %} <b>{{ {'cancelado': 'Razón', 'enviado': 'Envío', 'entregado': 'Nota'}.get(p.estado, 'Motivo') }}:</b> {{ p.motivo_estado }}{% endif %}</p>
+
+  {% set pasos = [('pendiente', 'Pedido recibido', 'reloj'), ('aprobado', 'Aprobado', 'ok'), ('enviado', 'Enviado', 'camion'), ('entregado', 'Entregado', 'producto')] %}
+  {% set orden = ['pendiente', 'aprobado', 'enviado', 'entregado'] %}
+  {% if p.estado in orden %}
+  {% set actual = orden.index(p.estado) %}
+  <ol class="pasos-pedido" aria-label="Avance del pedido">
+    {% for clave, nombre, ic in pasos %}
+    <li class="{{ 'hecho' if loop.index0 < actual else ('actual' if loop.index0 == actual else '') }}" {{ 'aria-current=step' if loop.index0 == actual }}>
+      <span class="ic">{{ icono(ic) }}</span><small>{{ nombre }}</small>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
 
   <dl class="datos">
     <div><dt>Cantidad</dt><dd>{{ p.kilos|kg }} {{ p.unidad }}</dd></div>
@@ -39,6 +54,21 @@
   </dl>
 </article>
 
+{% if p.estado == 'enviado' %}
+<section class="panel vidrio aparece" aria-labelledby="t-recibido">
+  <h2 class="panel-titulo" id="t-recibido" style="margin-bottom:6px">¿Ya le llegó el pedido?</h2>
+  <p class="subtitulo" style="font-size:14px">Confirme la entrega para cerrar el pedido. La asociación verá su nota.</p>
+  <form class="formulario" method="post" action="{{ url_for('pedidos.recibido', token=p.token) }}" style="grid-template-columns:1fr; margin-top:16px">
+    <div class="campo">
+      <label for="comentario">Nota de la entrega</label>
+      <textarea class="control" id="comentario" name="comentario" aria-describedby="ayuda-comentario" placeholder="Ej. Llegó completo y en buen estado"></textarea>
+      <span class="ayuda" id="ayuda-comentario">Opcional.</span>
+    </div>
+    <div class="pie-formulario"><button class="boton boton-primario" type="submit" style="width:100%">{{ icono('ok') }}Confirmar que lo recibí</button></div>
+  </form>
+</section>
+{% endif %}
+
 {% if p.estado in ('pendiente', 'aprobado') %}
 <section class="panel vidrio aparece" aria-labelledby="t-cancelar">
   <h2 class="panel-titulo" id="t-cancelar" style="margin-bottom:6px">Cancelar el pedido</h2>
@@ -51,6 +81,26 @@
     </div>
     <div class="pie-formulario"><button class="boton boton-peligro" type="submit" style="width:100%">{{ icono('bloqueo') }}Cancelar pedido</button></div>
   </form>
+</section>
+{% endif %}
+
+{% if historial %}
+<section class="panel vidrio aparece" aria-labelledby="t-historial">
+  <div class="panel-titulo"><h2 id="t-historial">{{ icono('reloj') }}Historial del pedido</h2></div>
+  {% set nombres = {'aprobado': 'Aprobado', 'enviado': 'Enviado', 'entregado': 'Entregado', 'rechazado': 'Rechazado', 'cancelado': 'Cancelado'} %}
+  <ol class="historial">
+    {% for h in historial %}
+    {% set nota = h.accion.split('(', 1)[1][:-1] if '(' in h.accion else '' %}
+    <li class="{{ 'denegado' if h.valor_nuevo in ('rechazado', 'cancelado') }}">
+      <span class="punto">{{ icono('bloqueo' if h.valor_nuevo in ('rechazado', 'cancelado') else 'ok') }}</span>
+      <div>
+        <p>{% if h.campo == 'kilos' %}<b>Pedido registrado</b> · {{ h.valor_nuevo|replace('.', ',') }} {{ p.unidad }}
+           {% else %}<b>{{ nombres.get(h.valor_nuevo, h.valor_nuevo) }}</b>{% if nota %} · {{ nota }}{% endif %}{% endif %}</p>
+        <small>{{ h.fecha }} · {{ 'Comprador' if h.usuario == 'comprador' else 'Asociación (' ~ h.usuario ~ ')' }}</small>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
 </section>
 {% endif %}
 
