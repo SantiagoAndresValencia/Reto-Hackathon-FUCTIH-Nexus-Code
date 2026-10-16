@@ -28,6 +28,18 @@ respaldo.registrar_comandos(app)
 crear_tablas()
 
 
+@app.template_filter("kg")
+def formato_kg(valor):
+    """100.0 -> '100', 12.5 -> '12,5'."""
+    return f"{valor:g}".replace(".", ",") if valor is not None else "—"
+
+
+@app.template_filter("miles")
+def formato_miles(valor):
+    """1600000 -> '1.600.000'."""
+    return f"{valor:,.0f}".replace(",", ".") if valor is not None else "—"
+
+
 @app.route("/")
 def inicio():
     return redirect(url_for("lotes.lista_lotes"))

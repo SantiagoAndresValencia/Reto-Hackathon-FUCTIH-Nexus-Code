@@ -1,17 +1,42 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ingresar</title>
-</head>
-<body>
-  <h1>Ingresar</h1>
-  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-  <form method="post">
-    <p><label for="usuario">Usuario</label><br><input id="usuario" name="usuario" autofocus></p>
-    <p><label for="clave">Contraseña</label><br><input id="clave" name="clave" type="password"></p>
-    <button type="submit">Ingresar</button>
+{% extends "publico.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<section class="tarjeta-acceso vidrio aparece" aria-labelledby="t-ingresar">
+  <h1 class="titulo" id="t-ingresar">Ingresar</h1>
+  <p class="subtitulo">Registre lotes y siga su trazabilidad hasta el comprador.</p>
+  <hr class="separador">
+
+  {% if error %}
+  <div class="aviso aviso-error" role="alert" style="margin-bottom:18px">{{ icono('alerta') }}<div><b>No pudimos ingresar</b>{{ error }}</div></div>
+  {% endif %}
+
+  <form class="formulario" method="post">
+    <div class="campo">
+      <label for="usuario">Usuario</label>
+      <input class="control" id="usuario" name="usuario" autocomplete="username" autocapitalize="none" value="{{ request.form.get('usuario', '') }}" required autofocus>
+    </div>
+    <div class="campo">
+      <label for="clave">Contraseña</label>
+      <input class="control" id="clave" name="clave" type="password" autocomplete="current-password" required>
+    </div>
+    <div class="pie-formulario"><button class="boton boton-primario" type="submit" style="width:100%">Ingresar</button></div>
   </form>
-</body>
-</html>
+
+  <hr class="separador">
+  <p class="campo" style="margin-bottom:10px"><label id="t-demo">Usuarios de demostración</label></p>
+  <div class="demo" role="group" aria-labelledby="t-demo">
+    <button type="button" data-demo="operador" data-clave="operador123"><b>operador</b><small>Clave operador123 · planta</small></button>
+    <button type="button" data-demo="admin" data-clave="admin123"><b>admin</b><small>Clave admin123 · administración</small></button>
+  </div>
+</section>
+
+<section class="panel vidrio aparece" aria-labelledby="t-consulta">
+  <h2 class="panel-titulo" id="t-consulta" style="margin-bottom:12px">¿Es comprador? Consulte un producto</h2>
+  <form class="consulta" method="get" action="{{ url_for('productos.consultar') }}">
+    <label class="sr-only" for="codigo-login">Código del producto</label>
+    <input class="control" id="codigo-login" name="codigo" placeholder="P-CAC001-1" autocapitalize="characters">
+    <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Consultar</button>
+  </form>
+</section>
+{% endblock %}

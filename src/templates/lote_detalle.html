@@ -1,74 +1,284 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lote {{ lote.codigo }}</title>
-</head>
-<body>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
-  <h1>Lote {{ lote.codigo }}</h1>
-  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+{% extends "base.html" %}
+{% from "_iconos.html" import icono, icono_etapa, estado %}
+{% block titulo %}Lote {{ lote.codigo }}{% endblock %}
+{% block contenido %}
+{% set es_admin = session.rol == 'admin' %}
+{% set con_producto = etapas|selectattr('producto')|list %}
+{% set liberados = con_producto|selectattr('estado', 'equalto', 'liberado')|list %}
+{% set alertas_por_etapa = {} %}
+{% for a in alertas %}{% set _ = alertas_por_etapa.setdefault(a.transformacion_id, []).append(a) %}{% endfor %}
+{% set pct_consumo = (lote.consumido / lote.recibido * 100) if lote.recibido else 0 %}
 
-  <h2>1. Recepción</h2>
-  <ul>
-    <li>Productor: {{ lote.productor }}</li>
-    <li>Origen: {{ lote.origen }}</li>
-    <li>Fecha: {{ lote.fecha_recepcion }}</li>
-    <li>Recibido: {{ '%g'|format(lote.recibido) }} kg · Consumido: {{ '%g'|format(lote.consumido) }} kg ·
-        <strong>Disponible: {{ '%g'|format(lote.disponible) }} kg</strong></li>
-  </ul>
+<header class="encabezado vidrio aparece">
+  <div>
+    <nav class="migas" aria-label="Ruta">
+      <a href="{{ url_for('lotes.lista_lotes') }}">Lotes</a><span aria-hidden="true">/</span><span>{{ lote.codigo }}</span>
+    </nav>
+    <h1 class="titulo">Lote {{ lote.codigo }} <small>· {{ lote.origen }}</small></h1>
+    <p class="placa">
+      <span>{{ icono('mapa') }}<b>{{ lote.origen }}, Huila</b></span>
+      <span>{{ icono('persona') }}{{ lote.productor }}</span>
+      <span>{{ icono('calendario') }}Recibido el <b>{{ lote.fecha_recepcion }}</b></span>
+    </p>
+  </div>
+  <div class="acciones">
+    {% if es_admin %}
+    <a class="boton boton-secundario" href="{{ url_for('auth.auditoria', q=lote.codigo) }}">{{ icono('escudo') }}Historial completo</a>
+    {% endif %}
+    {% if lote.disponible > 0 %}
+    <a class="boton boton-primario" href="{{ url_for('lotes.transformar', codigo=lote.codigo) }}">{{ icono('transformar') }}Registrar transformación</a>
+    {% endif %}
+  </div>
+</header>
+
+{% if error %}
+<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se guardó el cambio</b>{{ error }}</div></div>
+{% endif %}
+
+<section class="panel vidrio aparece" aria-labelledby="t-inventario">
+  <div class="panel-titulo">
+    <h2 id="t-inventario">{{ icono('balanza') }}Inventario del lote</h2>
+    <p>Disponible = recibido − consumido</p>
+  </div>
+  <div class="inventario">
+    <div><span>Recibido</span><b>{{ lote.recibido|kg }}<small>{{ lote.unidad }}</small></b></div>
+    <div><span>Consumido en transformaciones</span><b>{{ lote.consumido|kg }}<small>{{ lote.unidad }}</small></b></div>
+    <div><span>Disponible</span><b>{{ lote.disponible|kg }}<small>{{ lote.unidad }}</small></b></div>
+  </div>
+  <div class="barra" role="img" aria-label="Consumido {{ '%.0f'|format(pct_consumo) }} % del lote"><i style="width: {{ '%.1f'|format(pct_consumo) }}%"></i></div>
+</section>
+
+<section class="pipeline vidrio aparece" aria-labelledby="t-recorrido" data-pipeline>
+  <div class="panel-titulo">
+    <h2 id="t-recorrido">{{ icono('mazorca') }}Recorrido de trazabilidad</h2>
+    <p>Seleccione una fase para ver su detalle</p>
+  </div>
+
+  <ol class="pipeline-pista">
+    <li class="fase hecha">
+      <button class="nodo" type="button" aria-pressed="false" aria-controls="fase-recepcion" data-fase>
+        {{ icono('mazorca') }}<span class="sr-only">Ver recepción</span>
+      </button>
+      <div class="fase-texto">
+        <p class="fase-nombre">Recepción</p>
+        <p class="fase-dato">{{ lote.recibido|kg }} {{ lote.unidad }} · {{ lote.fecha_recepcion }}</p>
+      </div>
+    </li>
+    {% for e in etapas %}
+    {% set n_alertas = alertas_por_etapa.get(e.id, [])|length %}
+    <li class="fase hecha f-{{ e.estado if e.producto and e.estado != 'liberado' else ('sin' if not e.producto else 'liberado') }}">
+      <button class="nodo" type="button" aria-pressed="false" aria-controls="fase-{{ e.id }}" data-fase {% if loop.last %}data-inicial{% endif %}>
+        {{ icono_etapa(e.etapa) }}<span class="sr-only">Ver {{ e.etapa }}</span>
+        {% if n_alertas %}<span class="nodo-alerta" aria-hidden="true">{{ n_alertas }}</span><span class="sr-only">, {{ n_alertas }} alerta{{ 's' if n_alertas > 1 }}</span>{% endif %}
+      </button>
+      <div class="fase-texto">
+        <p class="fase-nombre">{{ e.etapa }}</p>
+        <p class="fase-dato">{{ e.entrada|kg }} → {{ e.salida|kg }} kg</p>
+        {% if e.producto %}{{ estado(e.estado) }}{% else %}{{ estado('') }}{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+    {% if lote.disponible > 0 %}
+    <li class="fase f-sin">
+      <button class="nodo" type="button" aria-pressed="false" aria-controls="fase-disponible" data-fase>
+        {{ icono('grano') }}<span class="sr-only">Ver cacao disponible</span>
+      </button>
+      <div class="fase-texto">
+        <p class="fase-nombre">Por transformar</p>
+        <p class="fase-dato">{{ lote.disponible|kg }} {{ lote.unidad }} disponibles</p>
+      </div>
+    </li>
+    {% endif %}
+    <li class="fase {{ 'hecha' if liberados }}">
+      <button class="nodo" type="button" aria-pressed="false" aria-controls="fase-comprador" data-fase>
+        {{ icono('ficha') }}<span class="sr-only">Ver fichas del comprador</span>
+      </button>
+      <div class="fase-texto">
+        <p class="fase-nombre">Comprador</p>
+        <p class="fase-dato">{{ liberados|length }} de {{ con_producto|length }} producto{{ 's' if con_producto|length != 1 }} a la venta</p>
+      </div>
+    </li>
+  </ol>
+
+  <p class="leyenda" aria-label="Leyenda de estados">
+    {{ estado('') }} Lote o etapa sin producto
+    {{ estado('pendiente') }} Aún no se vende
+    {{ estado('liberado') }} Disponible para la venta
+    {{ estado('bloqueado') }} Retirado con motivo
+  </p>
+
+  <hr class="separador">
+
+  {# ---------- Detalle de cada fase ---------- #}
+  <div class="detalle-fase" id="fase-recepcion" tabindex="-1">
+    <h3 class="panel-titulo"><span class="titulo" style="font-size:22px">Recepción del lote</span></h3>
+    <dl class="datos">
+      <div><dt>Código</dt><dd>{{ lote.codigo }}</dd></div>
+      <div><dt>Productor (ficticio)</dt><dd>{{ lote.productor }}</dd></div>
+      <div><dt>Municipio de origen</dt><dd>{{ lote.origen }}, Huila</dd></div>
+      <div><dt>Fecha de recepción</dt><dd>{{ lote.fecha_recepcion }}</dd></div>
+      <div><dt>Cantidad recibida</dt><dd>{{ lote.recibido|kg }} {{ lote.unidad }} de cacao seco</dd></div>
+      <div><dt>Transformaciones</dt><dd>{{ etapas|length }}</dd></div>
+    </dl>
+  </div>
 
   {% for e in etapas %}
-  <h2>{{ loop.index + 1 }}. {{ e.etapa }}{% if e.producto %} → {{ e.producto }}{% endif %}</h2>
-  <ul>
-    <li>Responsable: {{ e.responsable }} · Fecha: {{ e.fecha }}</li>
-    <li>Entrada {{ '%g'|format(e.entrada) }} kg → Salida {{ '%g'|format(e.salida) }} kg</li>
-    {% if e.incidencias %}<li>Incidencias: {{ e.incidencias }}</li>{% endif %}
-    {% if e.producto %}
-      <li>Producto: {{ e.nombre }} · Estado: <strong>{{ e.estado }}</strong>
-        {% if e.motivo_estado %}({{ e.motivo_estado }}){% endif %}
-        · <a href="{{ url_for('productos.ficha', codigo=e.producto) }}">Ficha del comprador</a></li>
-    {% else %}
-      <li>Sin producto vendible (salida 0 kg).</li>
+  {% set propias = alertas_por_etapa.get(e.id, []) %}
+  <div class="detalle-fase" id="fase-{{ e.id }}" tabindex="-1">
+    <div class="panel-titulo">
+      <h3 class="titulo" style="font-size:22px">{{ e.etapa }}{% if e.producto %} · {{ e.producto }}{% endif %}</h3>
+      {% if e.producto %}<a class="boton boton-secundario" href="{{ url_for('productos.ficha', codigo=e.producto) }}">{{ icono('ficha') }}Ficha del comprador</a>{% endif %}
+    </div>
+
+    <dl class="datos">
+      <div><dt>Responsable</dt><dd>{{ e.responsable }}</dd></div>
+      <div><dt>Fecha</dt><dd>{{ e.fecha }}</dd></div>
+      <div><dt>Entrada → salida</dt><dd>{{ e.entrada|kg }} → {{ e.salida|kg }} kg</dd></div>
+      {% if e.producto %}
+      <div><dt>Producto</dt><dd>{{ e.nombre }} · {{ e.salida|kg }} kg</dd></div>
+      <div><dt>Estado</dt><dd>{{ estado(e.estado) }}</dd></div>
+      {% if e.motivo_estado %}<div><dt>Motivo del estado</dt><dd class="largo">{{ e.motivo_estado }}</dd></div>{% endif %}
+      {% else %}
+      <div><dt>Producto</dt><dd>Sin producto vendible (salida 0 kg)</dd></div>
+      {% endif %}
+      {% if e.incidencias %}<div><dt>Incidencias</dt><dd class="largo">{{ e.incidencias }}</dd></div>{% endif %}
+      {% if e.justificacion %}<div><dt>Justificación</dt><dd class="largo">{{ e.justificacion }}</dd></div>{% endif %}
+    </dl>
+
+    {% if propias %}
+    <hr class="separador">
+    <div class="alertas">
+      {% for a in propias %}
+      <details class="alerta-item" {% if loop.first %}open{% endif %}>
+        <summary>{{ icono('alerta') }}{{ a.regla }}<span class="chev">{{ icono('chev') }}</span></summary>
+        <div class="alerta-cuerpo"><b>Regla evaluada:</b> {{ a.regla }}.<br><b>Causa:</b> {{ a.causa }}.</div>
+      </details>
+      {% endfor %}
+    </div>
     {% endif %}
-  </ul>
 
-  {% if session.rol == 'admin' %}
-  <table border="1" cellpadding="6">
-    <tr><th>Indicador</th><th>Valor</th><th>Fórmula</th></tr>
-    <tr><td>Merma</td>
-        <td>{{ '%.1f %%'|format(e.merma) if e.merma is not none else '—' }}</td>
-        <td>(entrada − salida) ÷ entrada × 100</td></tr>
-    <tr><td>Costo unitario</td>
-        <td>{{ '{:,.0f}'.format(e.costo_unitario).replace(',', '.') ~ ' COP/kg' if e.costo_unitario is not none else 'No calculable (salida 0)' }}</td>
-        <td>costo total ÷ salida vendible</td></tr>
-    <tr><td>Margen sobre venta</td>
-        <td>{{ '%.1f %%'|format(e.margen) if e.margen is not none else '—' }}</td>
-        <td>(precio − costo unitario) ÷ precio × 100</td></tr>
-  </table>
-  <p>Costo total: {{ '{:,.0f}'.format(e.costo_total).replace(',', '.') }} COP. Incluye: {{ e.costos_incluidos or '—' }}.
-     {% if e.precio_venta %}Precio de venta: {{ '{:,.0f}'.format(e.precio_venta).replace(',', '.') }} COP/kg.{% endif %}</p>
+    {% if es_admin %}
+    <hr class="separador">
+    <div class="indicadores">
+      <article class="indicador {{ 'alerta' if e.merma is not none and e.merma > 15 }}">
+        <p class="indicador-cabeza">Merma {{ icono('porcentaje') }}</p>
+        <p class="indicador-valor">{{ '%.1f'|format(e.merma) if e.merma is not none else '—' }}<small> %</small></p>
+        <p class="formula"><code>(entrada − salida) ÷ entrada × 100</code>
+          {% if e.merma is not none %}<span>({{ e.entrada|kg }} − {{ e.salida|kg }}) ÷ {{ e.entrada|kg }} × 100 = {{ '%.1f %%'|format(e.merma) }}</span>{% endif %}
+          <span>Alerta si supera 15 %</span></p>
+      </article>
+      <article class="indicador {{ 'alerta' if e.costo_unitario is none or (e.precio_venta and e.costo_unitario >= e.precio_venta) }}">
+        <p class="indicador-cabeza">Costo unitario {{ icono('moneda') }}</p>
+        {% if e.costo_unitario is not none %}
+        <p class="indicador-valor">{{ e.costo_unitario|miles }}<small> COP/kg</small></p>
+        <p class="formula"><code>costo total ÷ salida vendible</code>
+          <span>{{ e.costo_total|miles }} COP ÷ {{ e.salida|kg }} kg = {{ '{:,.0f}'.format(e.costo_unitario).replace(',', '.') }} COP/kg</span></p>
+        {% else %}
+        <p class="indicador-valor" style="font-size:22px">No calculable</p>
+        <p class="formula"><code>costo total ÷ salida vendible</code><span>La salida vendible es 0 kg.</span></p>
+        {% endif %}
+      </article>
+      <article class="indicador {{ 'alerta' if e.margen is not none and e.margen <= 0 }}">
+        <p class="indicador-cabeza">Margen sobre venta {{ icono('hoja') }}</p>
+        <p class="indicador-valor">{{ '%.1f'|format(e.margen) if e.margen is not none else '—' }}<small> %</small></p>
+        <p class="formula"><code>(precio − costo unitario) ÷ precio × 100</code>
+          {% if e.margen is not none %}<span>({{ e.precio_venta|miles }} − {{ e.costo_unitario|miles }}) ÷ {{ e.precio_venta|miles }} × 100</span>{% endif %}
+          <span>Precio de venta: {{ e.precio_venta|miles if e.precio_venta else '—' }} COP/kg</span></p>
+      </article>
+    </div>
+    <p class="supuesto">Costo total {{ e.costo_total|miles }} COP · incluye: {{ e.costos_incluidos or 'sin costos registrados' }}. Son reglas del ejercicio, no estándares agronómicos.</p>
 
     {% if e.producto %}
-    <form method="post" action="{{ url_for('productos.estado', codigo=e.producto) }}">
+    <hr class="separador">
+    <form class="estado-form" method="post" action="{{ url_for('productos.estado', codigo=e.producto) }}" data-estado-form>
       <input type="hidden" name="lote" value="{{ lote.codigo }}">
-      <label for="motivo-{{ e.producto }}">Motivo</label>
-      <input id="motivo-{{ e.producto }}" name="motivo">
-      <button name="estado" value="liberado">Liberar</button>
-      <button name="estado" value="bloqueado">Bloquear</button>
+      <div class="campo">
+        <label for="motivo-{{ e.producto }}">Motivo del cambio de estado de {{ e.producto }}</label>
+        <input class="control" id="motivo-{{ e.producto }}" name="motivo" required aria-describedby="ayuda-{{ e.producto }}" placeholder="Ej. Calidad verificada por el comité">
+        <span class="ayuda" id="ayuda-{{ e.producto }}">Obligatorio. Queda en la auditoría.</span>
+      </div>
+      <button class="boton boton-primario" name="estado" value="liberado">{{ icono('ok') }}Liberar</button>
+      <button class="boton boton-peligro" name="estado" value="bloqueado">{{ icono('bloqueo') }}Bloquear</button>
     </form>
     {% endif %}
-  {% endif %}
+    {% else %}
+    <hr class="separador">
+    <p class="vacio">{{ icono('info') }}Los costos, indicadores y el cambio de estado solo los ve el administrador.</p>
+    {% endif %}
+  </div>
   {% endfor %}
 
-  <h2>Alertas</h2>
-  <ul>
-    {% for a in alertas %}<li><strong>{{ a.regla }}</strong>: {{ a.causa }}</li>
-    {% else %}<li>Sin alertas.</li>{% endfor %}
-  </ul>
-  {% if session.rol == 'admin' %}
-  <p><a href="{{ url_for('auth.auditoria', q=lote.codigo) }}">Historial de cambios de {{ lote.codigo }}</a></p>
+  {% if lote.disponible > 0 %}
+  <div class="detalle-fase" id="fase-disponible" tabindex="-1">
+    <div class="panel-titulo">
+      <h3 class="titulo" style="font-size:22px">Cacao por transformar</h3>
+      <a class="boton boton-primario" href="{{ url_for('lotes.transformar', codigo=lote.codigo) }}">{{ icono('transformar') }}Registrar transformación</a>
+    </div>
+    <p class="subtitulo">Quedan <b>{{ lote.disponible|kg }} {{ lote.unidad }}</b> de {{ lote.codigo }}. Un lote admite varias transformaciones mientras tenga cacao disponible.</p>
+  </div>
   {% endif %}
-</body>
-</html>
+
+  <div class="detalle-fase" id="fase-comprador" tabindex="-1">
+    <h3 class="panel-titulo"><span class="titulo" style="font-size:22px">Fichas del comprador</span></h3>
+    {% if con_producto %}
+    <div class="tabla-envoltura">
+      <table class="tabla tabla-apilable">
+        <thead><tr><th scope="col">Producto</th><th scope="col">Etapa</th><th scope="col" class="num">Cantidad</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Ficha</span></th></tr></thead>
+        <tbody>
+        {% for e in con_producto %}
+          <tr>
+            <td data-etiqueta="Producto"><span class="codigo">{{ icono('producto') }}{{ e.producto }}</span></td>
+            <td data-etiqueta="Etapa">{{ e.etapa }}</td>
+            <td data-etiqueta="Cantidad" class="num">{{ e.salida|kg }} kg</td>
+            <td data-etiqueta="Estado">{{ estado(e.estado) }}</td>
+            <td class="sin-etiqueta num"><a href="{{ url_for('productos.ficha', codigo=e.producto) }}">Ver ficha pública</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="vacio">{{ icono('info') }}Este lote aún no tiene productos. Registre una transformación con salida mayor a 0 kg.</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="indicadores" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))">
+  <section class="panel vidrio aparece" aria-labelledby="t-alertas">
+    <div class="panel-titulo"><h2 id="t-alertas">{{ icono('alerta') }}Alertas del lote</h2><p>{{ alertas|length }}</p></div>
+    {% if alertas %}
+    <div class="alertas">
+      {% for a in alertas %}
+      <details class="alerta-item">
+        <summary>{{ icono('alerta') }}{{ a.regla }}<span class="chev">{{ icono('chev') }}</span></summary>
+        <div class="alerta-cuerpo"><b>Causa:</b> {{ a.causa }}.<br><small>{{ a.creada_en }}</small></div>
+      </details>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="vacio">{{ icono('ok') }}Sin alertas. Las mermas y los costos están dentro de las reglas.</p>
+    {% endif %}
+  </section>
+
+  {% if es_admin %}
+  <section class="panel vidrio aparece" aria-labelledby="t-historial">
+    <div class="panel-titulo"><h2 id="t-historial">{{ icono('reloj') }}Historial de cambios</h2><a href="{{ url_for('auth.auditoria', q=lote.codigo) }}">Ver todo</a></div>
+    {% if historial %}
+    <ol class="historial">
+      {% for h in historial %}
+      <li class="{{ 'denegado' if h.accion.startswith('DENEGADO') }}">
+        <span class="punto">{{ icono('bloqueo' if h.accion.startswith('DENEGADO') else 'ok') }}</span>
+        <div>
+          <p><b>{{ h.accion }}</b> · {{ h.entidad }} {{ h.entidad_id }}{% if h.campo %} · {{ h.campo }}: {{ h.valor_anterior or '—' }} → {{ h.valor_nuevo }}{% endif %}</p>
+          <small>{{ h.fecha }} · {{ h.usuario }}</small>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="vacio">{{ icono('info') }}Aún no hay cambios registrados.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

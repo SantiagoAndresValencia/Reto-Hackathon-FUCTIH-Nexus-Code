@@ -102,7 +102,14 @@ def detalle(codigo):
     datos = trazabilidad(obtener_db(), codigo)
     if datos is None:
         abort(404)
-    return render_template("lote_detalle.html", error=request.args.get("error", ""), **datos)
+    historial = []
+    if g.rol == "admin":
+        historial = obtener_db().execute(
+            "SELECT * FROM auditoria WHERE entidad_id = ? OR entidad_id LIKE ? ORDER BY id DESC LIMIT 12",
+            (codigo, f"P-{codigo}-%"),
+        ).fetchall()
+    return render_template("lote_detalle.html", error=request.args.get("error", ""),
+                           historial=historial, **datos)
 
 
 def registrar_transformacion(db, usuario, lote, formulario):

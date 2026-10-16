@@ -1,28 +1,52 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Auditoría</title>
-</head>
-<body>
-  <h1>Auditoría</h1>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
-  <form method="get">
-    <label for="q">Lote o producto</label> <input id="q" name="q" value="{{ q }}">
-    <button type="submit">Buscar</button>
+{% extends "base.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Auditoría{% endblock %}
+{% block contenido %}
+{% set cuenta = namespace(denegados=0) %}
+{% for a in filas if a.accion.startswith('DENEGADO') %}{% set cuenta.denegados = cuenta.denegados + 1 %}{% endfor %}
+<header class="encabezado vidrio aparece">
+  <div>
+    <h1 class="titulo">Auditoría</h1>
+    <p class="subtitulo">Registro inmutable de cada cambio. Las filas en rojo son intentos sin permiso.</p>
+  </div>
+</header>
+
+<section class="resumen" aria-label="Resumen de la auditoría" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))">
+  <div class="resumen-item vidrio aparece"><span>{{ icono('escudo') }}Registros</span><b>{{ filas|length }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('bloqueo') }}Intentos denegados</span><b>{{ cuenta.denegados }}</b></div>
+</section>
+
+<section class="panel vidrio aparece" aria-labelledby="t-auditoria">
+  <div class="panel-titulo"><h2 id="t-auditoria">{{ icono('reloj') }}Movimientos{% if q %} de «{{ q }}»{% endif %}</h2></div>
+  <form class="filtros" method="get">
+    <div class="campo">
+      <label for="q">Lote, producto o ruta</label>
+      <input class="control" id="q" name="q" value="{{ q }}" placeholder="CAC001 o P-CAC001-1" autocapitalize="characters">
+    </div>
+    <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Buscar</button>
+    {% if q %}<a class="boton boton-secundario" href="{{ url_for('auth.auditoria') }}">Ver todo</a>{% endif %}
   </form>
-  <table border="1" cellpadding="6">
-    <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Campo</th><th>Antes</th><th>Después</th></tr>
-    {% for a in filas %}
-    <tr>
-      <td>{{ a.fecha }}</td><td>{{ a.usuario }}</td><td>{{ a.accion }}</td>
-      <td>{{ a.entidad }} {{ a.entidad_id }}</td><td>{{ a.campo }}</td>
-      <td>{{ a.valor_anterior }}</td><td>{{ a.valor_nuevo }}</td>
-    </tr>
-    {% else %}
-    <tr><td colspan="7">Sin registros.</td></tr>
-    {% endfor %}
-  </table>
-</body>
-</html>
+  <hr class="separador">
+  <div class="tabla-envoltura">
+    <table class="tabla tabla-apilable">
+      <caption class="sr-only">Registro de auditoría</caption>
+      <thead><tr><th scope="col">Fecha</th><th scope="col">Usuario</th><th scope="col">Acción</th><th scope="col">Registro</th><th scope="col">Campo</th><th scope="col">Cambio</th></tr></thead>
+      <tbody>
+      {% for a in filas %}
+        {% set denegado = a.accion.startswith('DENEGADO') %}
+        <tr class="{{ 'fila-denegada' if denegado }}">
+          <td data-etiqueta="Fecha">{{ a.fecha }}</td>
+          <td data-etiqueta="Usuario">{{ a.usuario }}</td>
+          <td data-etiqueta="Acción" class="{{ 'accion-denegada' if denegado }}">{{ a.accion }}</td>
+          <td data-etiqueta="Registro">{{ a.entidad }} {{ a.entidad_id }}</td>
+          <td data-etiqueta="Campo">{{ a.campo or '—' }}</td>
+          <td data-etiqueta="Cambio"><span class="cambio"><del>{{ a.valor_anterior or '—' }}</del><span aria-hidden="true">→</span><span class="sr-only">a</span><ins>{{ a.valor_nuevo }}</ins></span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="sin-etiqueta"><p class="vacio">{{ icono('info') }}Sin registros{% if q %} para «{{ q }}»{% endif %}.</p></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

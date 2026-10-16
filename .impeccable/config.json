@@ -1,0 +1,80 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-16T05:28:19.821Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-16T05:28:19.900Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-16T05:28:19.995Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-16T05:28:20.089Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-transit.html"
+        ],
+        "createdAt": "2026-10-16T05:28:20.185Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-transit.html"
+        ],
+        "createdAt": "2026-10-16T05:28:20.268Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-transit.html"
+        ],
+        "createdAt": "2026-10-16T05:28:20.347Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-transit.html"
+        ],
+        "createdAt": "2026-10-16T05:28:20.431Z",
+        "reason": "Claude: discarded decision-round sketch (user re-rolled), never shipped"
+      }
+    ]
+  }
+}

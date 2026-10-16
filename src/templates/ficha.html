@@ -1,27 +1,41 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ f.nombre }}</title>
-</head>
-<body>
-  <h1>{{ f.nombre }}</h1>
+{% extends "publico.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}{{ f.nombre }} · {{ f.codigo_producto }}{% endblock %}
+{% block contenido %}
+<article class="pasaporte vidrio aparece" aria-labelledby="t-producto">
+  <header class="pasaporte-cabeza">
+    <div class="pasaporte-icono">{{ icono('mazorca') }}</div>
+    <h1 id="t-producto">{{ f.nombre }}</h1>
+    <p>Cacao de {{ f.origen }}, Huila · {{ f.codigo_producto }}</p>
+  </header>
+
   {% if f.en_venta %}
-    <p style="color:green"><strong>Disponible para la venta</strong></p>
+  <p class="sello sello-liberado" role="status">{{ icono('ok') }}Disponible para la venta</p>
   {% elif f.estado == 'bloqueado' %}
-    <p style="color:red"><strong>Producto bloqueado: no disponible para la venta</strong></p>
+  <p class="sello sello-bloqueado" role="status">{{ icono('bloqueo') }}Producto bloqueado: no disponible para la venta</p>
   {% else %}
-    <p><strong>En revisión: aún no disponible</strong></p>
+  <p class="sello sello-pendiente" role="status">{{ icono('reloj') }}En revisión: aún no disponible</p>
   {% endif %}
-  <ul>
-    <li>Código: {{ f.codigo_producto }}</li>
-    <li>Lote de origen: {{ f.lote_codigo }}</li>
-    <li>Municipio: {{ f.origen }}, Huila</li>
-    <li>Recepción del cacao: {{ f.fecha_recepcion }}</li>
-    <li>Transformación: {{ f.etapa }} ({{ f.fecha_transformacion }})</li>
-    <li>Cantidad: {{ '%g'|format(f.cantidad) }} {{ f.unidad }}</li>
-  </ul>
-  <p><small>Datos de una asociación simulada.</small></p>
-</body>
-</html>
+
+  <ol class="recorrido" aria-label="Recorrido del producto">
+    <li><span class="ic">{{ icono('mapa') }}</span><div><small>Origen</small><b>{{ f.origen }}, Huila</b></div></li>
+    <li><span class="ic">{{ icono('mazorca') }}</span><div><small>Recepción del cacao · lote {{ f.lote_codigo }}</small><b>{{ f.fecha_recepcion }}</b></div></li>
+    <li><span class="ic">{{ icono('grano') }}</span><div><small>Transformación</small><b>{{ f.etapa }} · {{ f.fecha_transformacion }}</b></div></li>
+    <li><span class="ic">{{ icono('producto') }}</span><div><small>Producto terminado</small><b>{{ f.cantidad|kg }} {{ f.unidad }}</b></div></li>
+  </ol>
+
+  <dl class="datos">
+    <div><dt>Código</dt><dd>{{ f.codigo_producto }}</dd></div>
+    <div><dt>Lote de origen</dt><dd>{{ f.lote_codigo }}</dd></div>
+  </dl>
+</article>
+
+<section class="panel vidrio aparece" aria-labelledby="t-otra">
+  <h2 class="panel-titulo" id="t-otra" style="margin-bottom:12px">Consultar otro producto</h2>
+  <form class="consulta" method="get" action="{{ url_for('productos.consultar') }}">
+    <label class="sr-only" for="codigo">Código del producto</label>
+    <input class="control" id="codigo" name="codigo" placeholder="P-CAC001-1" autocapitalize="characters">
+    <button class="boton boton-secundario" type="submit">{{ icono('buscar') }}Consultar</button>
+  </form>
+</section>
+{% endblock %}
