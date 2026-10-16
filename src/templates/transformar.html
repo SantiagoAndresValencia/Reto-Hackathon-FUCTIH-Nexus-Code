@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>Transformar lote {{ codigo }}</h1>
-  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
+  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a> · <a href="{{ url_for('lotes.detalle', codigo=codigo) }}">Ver trazabilidad</a></p>
   <p>Disponible: <strong>{{ '%g'|format(inventario.disponible) }} kg</strong></p>
 
   {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
