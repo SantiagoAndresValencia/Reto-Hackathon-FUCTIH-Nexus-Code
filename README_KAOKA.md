@@ -133,8 +133,8 @@ revisión humana en [E08](documentos/E08_IA_y_fuentes.md)):
 | Parte | Quién la hizo | Asistencia de IA |
 | --- | --- | --- |
 | Plan, división del trabajo | Equipo | Claude (Anthropic) propuso el plan; el equipo decidió y ejecutó |
-| `src/schema.sql`, `test_schema.py` | Thomas Chica | Declarar en E08  |
-| `calculos.py`, `test_calculos.py` | Dabidri | Declarar en E08  |
+| `src/schema.sql`, `test_schema.py` | Thomas Chica | Declarado en E08 |
+| `calculos.py`, `test_calculos.py` | Dabidri | Declarado en E08  |
 | `validaciones.py`, `db.py`, `lotes.py`, `auth.py`, `productos.py`, `auditoria.py`, `respaldo.py`, `app.py`, pruebas de flujo | Santiago Valencia | Código guiado; Santiago se guio del flujo que debia llevar el backend, lo ejecutó, corrigió errores y lo subió con commits propios |
 | Diseño visual Kaoka (`templates/`, `static/`) | Dabidri | Asistido por IA  |
 | Revisión de seguridad, precio justo sugerido | Santiago Valencia | Claude encontró fallos y propuso el código; Santiago lo revisó y aplicó |
