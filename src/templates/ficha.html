@@ -55,9 +55,20 @@
       <input class="control" id="comprador" name="comprador" value="{{ form.get('comprador', '') }}" autocomplete="organization" required>
     </div>
     <div class="campo">
-      <label for="contacto">Teléfono o correo</label>
-      <input class="control" id="contacto" name="contacto" value="{{ form.get('contacto', '') }}" autocomplete="email" aria-describedby="ayuda-contacto" required>
-      <span class="ayuda" id="ayuda-contacto">Lo necesitará para consultar el pedido. Solo lo ve el administrador.</span>
+      <label for="direccion">Dirección de entrega</label>
+      <input class="control" id="direccion" name="direccion" value="{{ form.get('direccion', '') }}" autocomplete="street-address"
+             placeholder="Calle, número, barrio y municipio" required>
+    </div>
+    <div class="campo">
+      <label for="telefono">Teléfono</label>
+      <input class="control" id="telefono" name="telefono" type="tel" inputmode="tel" value="{{ form.get('telefono', '') }}" autocomplete="tel"
+             placeholder="310 123 4567" required>
+    </div>
+    <div class="campo">
+      <label for="correo">Correo</label>
+      <input class="control" id="correo" name="correo" type="email" value="{{ form.get('correo', '') }}" autocomplete="email"
+             placeholder="compras@empresa.co" aria-describedby="ayuda-contacto" autocapitalize="none" required>
+      <span class="ayuda" id="ayuda-contacto">Con el teléfono o el correo podrá consultar el pedido. Sus datos solo los ve el administrador.</span>
     </div>
     <div class="total-pedido" aria-live="polite">
       <span>Total estimado</span>

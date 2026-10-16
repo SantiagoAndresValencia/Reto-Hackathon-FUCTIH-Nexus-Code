@@ -95,7 +95,7 @@
     <h2 class="buscador-titulo" id="t-seguir">Seguir un pedido</h2>
     <p class="subtitulo">Vea si el administrador ya lo aprobó, o cancélelo dejando la razón.</p>
     {% if error_pedido %}
-    <div class="aviso aviso-error" role="alert" style="margin-top:14px">{{ icono('alerta') }}<div>El número y el contacto no coinciden con ningún pedido.</div></div>
+    <div class="aviso aviso-error" role="alert" style="margin-top:14px">{{ icono('alerta') }}<div>El número y el teléfono o correo no coinciden con ningún pedido.</div></div>
     {% endif %}
     <form class="formulario" method="get" action="{{ url_for('pedidos.buscar') }}">
       <div class="campo">

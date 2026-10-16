@@ -64,7 +64,9 @@ CREATE TABLE IF NOT EXISTS pedidos (
     token           TEXT NOT NULL UNIQUE CHECK (length(token) >= 16), -- enlace privado del comprador
     producto_codigo TEXT NOT NULL REFERENCES productos(codigo),
     comprador       TEXT NOT NULL CHECK (length(trim(comprador)) > 0),
-    contacto        TEXT NOT NULL CHECK (length(trim(contacto)) > 0),
+    direccion       TEXT NOT NULL CHECK (length(trim(direccion)) > 0),
+    telefono        TEXT NOT NULL CHECK (length(trim(telefono)) > 0),
+    correo          TEXT NOT NULL CHECK (correo LIKE '%_@_%._%'),
     kilos           REAL NOT NULL CHECK (kilos > 0),
     precio_kg       REAL NOT NULL CHECK (precio_kg >= 0),          -- precio congelado al pedir
     estado          TEXT NOT NULL DEFAULT 'pendiente'

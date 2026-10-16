@@ -1,3 +1,4 @@
+import re
 import secrets
 import sqlite3
 
@@ -7,7 +8,7 @@ from src.auditoria import registrar
 from src.auth import PermisoDenegado, exigir_admin, login_requerido, solo_admin
 from src.db import obtener_db
 from src.productos import disponible_producto, ficha_publica
-from src.validaciones import ErrorValidacion, numero_positivo, texto
+from src.validaciones import ErrorValidacion, correo, numero_positivo, telefono, texto
 
 bp_pedidos = Blueprint("pedidos", __name__)
 
@@ -32,7 +33,9 @@ def crear_pedido(db, codigo_producto, datos):
         raise ErrorValidacion("Este producto no está disponible para la venta.")
     kilos = numero_positivo(datos.get("kilos"), "Kilos")
     comprador = texto(datos.get("comprador"), "Nombre o empresa")
-    contacto = texto(datos.get("contacto"), "Teléfono o correo")
+    direccion = texto(datos.get("direccion"), "Dirección de entrega")
+    tel = telefono(datos.get("telefono"), "Teléfono")
+    email = correo(datos.get("correo"), "Correo")
     libre = disponible_producto(db, producto["codigo_producto"])
     if kilos > libre + 0.000001:
         cifra = f"{max(libre, 0):g}".replace(".", ",")
@@ -41,9 +44,9 @@ def crear_pedido(db, codigo_producto, datos):
     try:
         with db:
             cursor = db.execute(
-                "INSERT INTO pedidos (token, producto_codigo, comprador, contacto, kilos, precio_kg) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (token, producto["codigo_producto"], comprador, contacto, kilos, producto["precio_venta"]))
+                "INSERT INTO pedidos (token, producto_codigo, comprador, direccion, telefono, correo, kilos, precio_kg) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (token, producto["codigo_producto"], comprador, direccion, tel, email, kilos, producto["precio_venta"]))
             numero = f"PED-{cursor.lastrowid:04d}"
             registrar(db, "comprador", "crear pedido", "pedido", numero, "kilos", "", f"{kilos:g}")
     except sqlite3.IntegrityError as e:
@@ -124,12 +127,14 @@ def cancelar(token):
 
 @bp_pedidos.route("/pedidos/buscar")
 def buscar():
-    """El comprador recupera su pedido con el número y el contacto que dejó."""
+    """El comprador recupera su pedido con el número y el teléfono o el correo que dejó."""
     numero = request.args.get("numero", "").strip().upper()
     contacto = request.args.get("contacto", "").strip().lower()
-    fila = obtener_db().execute("SELECT token, contacto FROM pedidos WHERE id = ?",
+    fila = obtener_db().execute("SELECT token, telefono, correo FROM pedidos WHERE id = ?",
                                 (numero_a_id(numero),)).fetchone()
-    if fila and contacto and fila["contacto"].strip().lower() == contacto:
+    solo_digitos = re.sub(r"\D", "", contacto)
+    if fila and contacto and (contacto == fila["correo"].lower()
+                              or (solo_digitos and solo_digitos == re.sub(r"\D", "", fila["telefono"]))):
         return redirect(url_for("pedidos.seguimiento", token=fila["token"]))
     return redirect(url_for("productos.comprador", pedido=numero, error_pedido=1) + "#seguir-pedido")
 

@@ -255,8 +255,8 @@ def test_pedidos_no_sobrevenden_ni_se_reabren(conn):
     _lote(conn)
     tid = _transformacion(conn)
     _producto(conn, tid, codigo="P-CAC001-1", estado="pendiente")
-    insertar = ("INSERT INTO pedidos (token, producto_codigo, comprador, contacto, kilos, precio_kg) "
-                "VALUES (?, 'P-CAC001-1', 'C', 'c@x.co', ?, 1000)")
+    insertar = ("INSERT INTO pedidos (token, producto_codigo, comprador, direccion, telefono, correo, kilos, precio_kg) "
+                "VALUES (?, 'P-CAC001-1', 'C', 'Calle 1', '3100000000', 'c@x.co', ?, 1000)")
     with pytest.raises(sqlite3.IntegrityError, match="PRODUCTO_NO_DISPONIBLE"):
         conn.execute(insertar, ("t" * 20, 1))
     conn.execute("UPDATE productos SET estado = 'liberado', motivo_estado = 'ok' WHERE codigo = 'P-CAC001-1'")
