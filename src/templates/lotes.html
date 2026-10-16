@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lotes</title>
+</head>
+<body>
+  <h1>Lotes recibidos</h1>
+  <p><a href="{{ url_for('lotes.lote_nuevo') }}">+ Recibir lote</a></p>
+
+  <table border="1" cellpadding="6">
+    <tr><th>Código</th><th>Origen</th><th>Recibido</th><th>Disponible</th></tr>
+    {% for l in lotes %}
+    <tr>
+      <td>{{ l.codigo }}</td>
+      <td>{{ l.origen }}</td>
+      <td>{{ '%g'|format(l.recibido) }} {{ l.unidad }}</td>
+      <td>{{ '%g'|format(l.disponible) }} {{ l.unidad }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4">Todavía no hay lotes.</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

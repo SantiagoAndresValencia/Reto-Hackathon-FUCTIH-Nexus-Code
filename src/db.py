@@ -8,7 +8,6 @@ RUTA_SCHEMA = Path(__file__).resolve().parent / "schema.sql"
 
 
 def crear_tablas():
-    
     RUTA_DB.parent.mkdir(exist_ok=True)
     conn = sqlite3.connect(RUTA_DB)
     conn.executescript(RUTA_SCHEMA.read_text(encoding="utf-8"))
@@ -16,7 +15,6 @@ def crear_tablas():
 
 
 def obtener_db():
-    
     if "db" not in g:
         g.db = sqlite3.connect(RUTA_DB)
         g.db.row_factory = sqlite3.Row
@@ -25,7 +23,6 @@ def obtener_db():
 
 
 def cerrar_db(error=None):
-    
     db = g.pop("db", None)
     if db is not None:
         db.close()
