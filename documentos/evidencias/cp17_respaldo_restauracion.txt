@@ -1,0 +1,4 @@
+Respaldo creado en datos/respaldo_casos.db: {'integridad': 'ok', 'lotes': ['CAC001', 'CAC002', 'CAC003', 'CAC004'], 'total_recibido_kg': 380.0, 'transformaciones': 2, 'productos': 1, 'auditoria': 8}
+Esperado: {'integridad': 'ok', 'lotes': ['CAC001', 'CAC002', 'CAC003', 'CAC004'], 'total_recibido_kg': 380.0, 'transformaciones': 2, 'productos': 1, 'auditoria': 8}
+Obtenido: {'integridad': 'ok', 'lotes': ['CAC001', 'CAC002', 'CAC003', 'CAC004'], 'total_recibido_kg': 380.0, 'transformaciones': 2, 'productos': 1, 'auditoria': 8}
+INTEGRIDAD OK

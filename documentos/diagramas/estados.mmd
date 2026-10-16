@@ -1,0 +1,7 @@
+stateDiagram-v2
+  direction LR
+  [*] --> pendiente: transformación con salida > 0
+  pendiente --> liberado: admin + motivo
+  pendiente --> bloqueado: admin + motivo
+  liberado --> bloqueado: admin + motivo
+  bloqueado --> liberado: admin + motivo

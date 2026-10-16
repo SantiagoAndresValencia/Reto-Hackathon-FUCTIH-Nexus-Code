@@ -1,0 +1,2 @@
+POST repetido con op_id=5cb58638-931f-4262-b05f-edacd2ac9529
+Respuesta: Esta operación ya estaba registrada: no se consumió de nuevo.

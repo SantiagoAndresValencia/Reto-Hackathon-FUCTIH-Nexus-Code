@@ -1,0 +1,11 @@
+flowchart LR
+  N["Navegador<br/>computador o celular"] -->|"formularios HTML"| R
+  subgraph APP["Flask · src/app.py"]
+    R["Rutas (blueprints)<br/>auth.py · lotes.py · productos.py<br/>@login_requerido · @solo_admin"]
+    L["Reglas de negocio<br/>calculos.py · validaciones.py<br/>auditoria.py · respaldo.py"]
+    T["Presentación<br/>templates/ (Jinja)<br/>static/ (Kaoka CSS/JS)"]
+    R --> L
+    R --> T
+  end
+  L -->|"sqlite3 + transacciones"| DB[("SQLite · datos/cacao.db<br/>schema.sql: CHECK,<br/>triggers y vistas")]
+  R -->|"lecturas"| DB

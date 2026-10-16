@@ -1,0 +1,192 @@
+[
+ {
+  "id": "CP01",
+  "req": "RF09/Seguridad",
+  "datos": "Sin sesión",
+  "pasos": "Abrir /lotes sin iniciar sesión",
+  "esperado": "Redirige al login",
+  "obtenido": "Redirigió a /login",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp01_sin_sesion.png"
+ },
+ {
+  "id": "CP02",
+  "req": "Seguridad",
+  "datos": "operador / clave incorrecta",
+  "pasos": "Iniciar sesión",
+  "esperado": "Mensaje de error, no entra",
+  "obtenido": "Muestra «Usuario o contraseña incorrectos.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp02_login_fallido.png"
+ },
+ {
+  "id": "CP03",
+  "req": "RF01",
+  "datos": "CAC004, Productor D, Neiva, 2026-10-15, 50 kg",
+  "pasos": "Recibir lote → Registrar",
+  "esperado": "Lote guardado con código único",
+  "obtenido": "«Lote CAC004 guardado.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp03_lote_valido.png"
+ },
+ {
+  "id": "CP04",
+  "req": "RF01",
+  "datos": "Cantidad -5 kg",
+  "pasos": "Recibir lote → Registrar",
+  "esperado": "Mensaje claro, no guarda, conserva lo escrito",
+  "obtenido": "«El campo «Cantidad» debe ser mayor que 0»; productor conservado: sí",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp04_cantidad_negativa.png"
+ },
+ {
+  "id": "CP05",
+  "req": "RF01",
+  "datos": "Productor vacío",
+  "pasos": "Recibir lote → Registrar",
+  "esperado": "Mensaje de campo obligatorio, no guarda",
+  "obtenido": "«El campo «Productor» es obligatorio.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp05_campo_vacio.png"
+ },
+ {
+  "id": "CP06",
+  "req": "RF01",
+  "datos": "Código CAC001 ya existente",
+  "pasos": "Recibir lote → Registrar",
+  "esperado": "Rechaza el duplicado",
+  "obtenido": "«Ya existe un lote con el código CAC001.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp06_duplicado.png"
+ },
+ {
+  "id": "CP07",
+  "req": "RF02/RF04/RF08",
+  "datos": "CAC001: entrada 100 kg, salida 80 kg",
+  "pasos": "Transformar → Registrar",
+  "esperado": "Registra, crea P-CAC001-1, merma 20 % y alerta > 15 %",
+  "obtenido": "«Transformación registrada.»; disponible 0 kg",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp07_transformacion.png"
+ },
+ {
+  "id": "CP08",
+  "req": "RF08",
+  "datos": "Mismo op_id reenviado",
+  "pasos": "Reenviar el mismo formulario",
+  "esperado": "Un solo consumo",
+  "obtenido": "«Esta operación ya estaba registrada: no se consumió de nuevo.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp08_reenvio.txt"
+ },
+ {
+  "id": "CP09",
+  "req": "RF08",
+  "datos": "CAC002 (150 kg): entrada 200 kg",
+  "pasos": "Transformar → Registrar",
+  "esperado": "Rechaza, el disponible sigue en 150 kg",
+  "obtenido": "«No hay suficiente cacao disponible en CAC002.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp09_sin_existencia.png"
+ },
+ {
+  "id": "CP10",
+  "req": "RF05/RF12",
+  "datos": "CAC003: entrada 10 kg, salida 0 kg, costo 50.000",
+  "pasos": "Transformar → ver detalle",
+  "esperado": "Sin error; costo «No calculable»; alerta de costo",
+  "obtenido": "Registrada; detalle muestra «No calculable» y alerta «Salida vendible igual a 0»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp10_salida_cero.png"
+ },
+ {
+  "id": "CP11",
+  "req": "RF03/RF04/RF05/RF12",
+  "datos": "CAC001 tras 100→80 kg, 1.600.000 COP, 25.000 COP/kg",
+  "pasos": "Detalle del lote como admin",
+  "esperado": "Recorrido, merma 20 %, alerta, 20.000 COP/kg, margen 20 %, fórmulas; precio sugerido 28.571",
+  "obtenido": "Muestra merma 20.0 %, 20.000 COP/kg, margen 20.0 %, fórmulas y precio sugerido 28.571 COP/kg",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp11_trazabilidad_admin.png"
+ },
+ {
+  "id": "CP12",
+  "req": "RF09",
+  "datos": "Usuario operador; POST directo al servidor saltando la interfaz",
+  "pasos": "Enviar «liberar P-CAC001-1» como operador",
+  "esperado": "Acción denegada (403); estado sin cambio",
+  "obtenido": "El operador no ve los botones; el servidor responde 403 «Acción denegada»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp12_operador_denegado.png"
+ },
+ {
+  "id": "CP13",
+  "req": "RF06/RF09/Hora 12",
+  "datos": "Bloquear P-CAC001-1 como admin; consultar sin sesión en celular",
+  "pasos": "Bloquear con motivo → Consultar producto",
+  "esperado": "Ficha: bloqueado, origen Rivera, sin costos ni productor",
+  "obtenido": "Ficha pública muestra estado bloqueado y origen Rivera; no muestra costos, precio ni productor",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp13_ficha_bloqueada_movil.png"
+ },
+ {
+  "id": "CP14",
+  "req": "RF10",
+  "datos": "Filtro CAC001",
+  "pasos": "Auditoría → Filtrar",
+  "esperado": "Usuario, fecha, pendiente → bloqueado y el intento denegado",
+  "obtenido": "Lista admin «pendiente → bloqueado» con fecha y el intento DENEGADO del operador",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp14_auditoria.png"
+ },
+ {
+  "id": "CP15",
+  "req": "RF11",
+  "datos": "Filtro origen = Rivera",
+  "pasos": "Exportar CSV como admin",
+  "esperado": "Solo CAC001 con cantidades, estado y costos",
+  "obtenido": "CSV con 1 fila: CAC001,Rivera,100.0,100.0,0.0,bloqueado,1600000.0",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp15_resumen_rivera.csv"
+ },
+ {
+  "id": "CP16",
+  "req": "RF07",
+  "datos": "Datos de los casos anteriores",
+  "pasos": "Detener la app y volver a ejecutarla",
+  "esperado": "Los datos siguen",
+  "obtenido": "Tras reiniciar se ven CAC001–CAC004 y sus estados",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp16_tras_reiniciar.png"
+ },
+ {
+  "id": "CP17",
+  "req": "RF07",
+  "datos": "Base con los casos anteriores",
+  "pasos": "flask respaldar y luego restaurar",
+  "esperado": "Conteos e identificadores iguales",
+  "obtenido": "«INTEGRIDAD OK»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp17_respaldo_restauracion.txt"
+ },
+ {
+  "id": "CP18",
+  "req": "Errores",
+  "datos": "URL inexistente",
+  "pasos": "Abrir /no-existe",
+  "esperado": "Página de error clara",
+  "obtenido": "«La página o el registro no existe.»",
+  "estado": "Pasa",
+  "evidencia": "evidencias/cp18_404.png"
+ },
+ {
+  "id": "CP19",
+  "req": "Usabilidad",
+  "datos": "Pantalla 390×844 (celular)",
+  "pasos": "Lotes y Transformar en celular",
+  "esperado": "Sin desplazamiento horizontal; todos los campos con etiqueta",
+  "obtenido": "Ancho de página 390px; campos sin etiqueta: ninguno",
+  "estado": "Pasa",
+  "evidencia": "evidencias/movil_transformar.png"
+ }
+]

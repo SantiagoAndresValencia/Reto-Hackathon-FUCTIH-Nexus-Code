@@ -1,0 +1,3 @@
+Login con teclado (Tab/Enter): ['foco inicial: usuario', 'tras Tab: clave', '/lotes']
+Orden de Tab en Recibir lote: ['Saltar al contenido', 'KaokaTrazabilidad de caca', 'Lotes y trazabilidad', 'Recibir lote', 'Consultar producto', 'Auditoría', 'Exportar CSV', 'Salir', 'Lotes', 'codigo', 'productor', 'origen', 'fecha_recepcion', 'fecha_recepcion']
+Foco visible en campo: none 0px / box-shadow: rgba(95, 191, 110, 0.28) 0px 0px 0px 4px

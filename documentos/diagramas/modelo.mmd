@@ -1,0 +1,22 @@
+erDiagram
+  direction LR
+  LOTES ||--o{ TRANSFORMACIONES : "se consume en"
+  TRANSFORMACIONES ||--o| PRODUCTOS : "genera si salida > 0"
+  LOTES ||--o{ PRODUCTOS : "origen de"
+  LOTES ||--o{ ALERTAS : "tiene"
+  TRANSFORMACIONES ||--o{ ALERTAS : "dispara"
+  LOTES { text codigo PK }
+  TRANSFORMACIONES { int id PK
+    text op_id UK
+    text lote_codigo FK }
+  PRODUCTOS { text codigo PK
+    int transformacion_id FK
+    text lote_codigo FK
+    text estado }
+  ALERTAS { int id PK
+    text lote_codigo FK
+    int transformacion_id FK }
+  USUARIOS { int id PK
+    text usuario UK }
+  AUDITORIA { int id PK
+    text entidad_id }

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Kaoka · Pitch</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'DejaVu Sans', Arial, sans-serif; color: #1c1a14; }
+  .s { width: 1280px; height: 720px; padding: 56px 72px; position: relative; overflow: hidden;
+       page-break-after: always; background: #f6f3ec; }
+  .s:last-child { page-break-after: auto; }
+  .oscura { background: linear-gradient(135deg, #0f3d24 0%, #14532d 55%, #1f7a3f 100%); color: #f4f1e8; }
+  .num { position: absolute; top: 40px; right: 72px; font-size: 15px; letter-spacing: .12em; color: #8a7d68; }
+  .oscura .num { color: #a7d3b2; }
+  .etq { font-size: 16px; letter-spacing: .16em; text-transform: uppercase; color: #a35a12; font-weight: 700; margin: 0 0 14px; }
+  .oscura .etq { color: #f2c27b; }
+  h1 { font-size: 54px; line-height: 1.08; margin: 0 0 22px; letter-spacing: -.01em; }
+  h2 { font-size: 40px; line-height: 1.12; margin: 0 0 24px; }
+  p { font-size: 22px; line-height: 1.45; margin: 0 0 14px; }
+  .grande { font-size: 26px; }
+  .col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .col3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .tarjeta { background: #fff; border: 1px solid #e0d8c8; border-radius: 16px; padding: 22px 24px; }
+  .oscura .tarjeta { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+  .tarjeta b { display: block; font-size: 21px; margin-bottom: 6px; }
+  .tarjeta span { font-size: 17px; line-height: 1.4; color: #5b5244; }
+  .oscura .tarjeta span { color: #d8e8dc; }
+  .cifra { font-size: 64px; font-weight: 800; color: #14532d; line-height: 1; }
+  .oscura .cifra { color: #fff; }
+  img { border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.18); display: block; }
+  ul { margin: 0; padding-left: 26px; } li { font-size: 21px; line-height: 1.5; margin-bottom: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 18px; }
+  td, th { padding: 9px 12px; border-bottom: 1px solid #e0d8c8; text-align: left; }
+  th { color: #8a7d68; font-weight: 600; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+  .pie { position: absolute; bottom: 30px; left: 72px; font-size: 14px; color: #8a7d68; }
+  .oscura .pie { color: #a7d3b2; }
+  .marca { font-size: 30px; font-weight: 800; letter-spacing: .02em; }
+  .chip { display: inline-block; background: #14532d; color: #fff; border-radius: 999px; padding: 6px 16px; font-size: 17px; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<section class="s oscura">
+  <div class="num">1 / 5 · PROBLEMA</div>
+  <p class="marca">Kaoka</p>
+  <p class="etq" style="margin-top:40px">El problema</p>
+  <h1>«¿De qué lote salió este cacao<br>y cuánto nos costó?»</h1>
+  <p class="grande" style="max-width:980px">Una asociación cacaotera del Huila anota en cuadernos, hojas de cálculo y mensajes.
+    Cuando un comprador reclama, nadie puede reconstruir rápido el origen, la merma ni el costo.</p>
+  <div class="col3" style="margin-top:34px">
+    <div class="tarjeta"><b>Origen perdido</b><span>No se puede responder un reclamo con evidencia.</span></div>
+    <div class="tarjeta"><b>Mermas invisibles</b><span>Las pérdidas en secado o tostión no se detectan a tiempo.</span></div>
+    <div class="tarjeta"><b>Precio a ciegas</b><span>Sin costo unitario, se puede vender por debajo del costo.</span></div>
+  </div>
+  <div class="pie">Caso y datos simulados del reto · Equipo Nexus Code · II Hackathon USCO 2026</div>
+</section>
+
+<section class="s">
+  <div class="num">2 / 5 · PROPUESTA</div>
+  <p class="etq">Propuesta de valor</p>
+  <h2 style="font-size:34px">Cada kilo con historia: del lote al comprador,<br>con merma, costo y precio justo calculados al momento.</h2>
+  <img src="img/recorrido.png" style="width:78%; margin:4px auto 22px">
+  <div class="col3">
+    <div class="tarjeta"><b>Operador</b><span>Recibe el lote y registra la etapa. El sistema no deja consumir de más ni descontar dos veces.</span></div>
+    <div class="tarjeta"><b>Administrador</b><span>Ve merma, costo y margen con la fórmula; libera o bloquea con motivo; todo queda auditado.</span></div>
+    <div class="tarjeta"><b>Comprador</b><span>Escribe el código del empaque y ve origen y estado, sin costos ni datos privados.</span></div>
+  </div>
+</section>
+
+<section class="s">
+  <div class="num">3 / 5 · PRODUCTO</div>
+  <p class="etq">Producto funcionando · demostración en vivo</p>
+  <div class="col" style="grid-template-columns: 1.55fr 1fr; gap:36px">
+    <div>
+      <img src="img/indicadores.png" style="width:100%">
+      <p style="margin-top:22px"><b>Diferenciador · Precio justo sugerido:</b> costo unitario ÷ (1 − margen objetivo).
+        Con 20.000 COP/kg y 30 % de margen, vender a <b>mínimo 28.571 COP/kg</b>.</p>
+      <p style="font-size:18px;color:#5b5244">68 pruebas automatizadas · 19 casos ejecutados · trazabilidad de 100 registros en 0,067 s ·
+        funciona sin Internet · respaldo con verificación de integridad</p>
+    </div>
+    <div style="text-align:center">
+      <img src="img/ficha.png" style="height:560px; margin:0 auto">
+    </div>
+  </div>
+</section>
+
+<section class="s">
+  <div class="num">4 / 5 · PRECIO Y BENEFICIO</div>
+  <p class="etq">Quién paga y cuánto</p>
+  <div class="col" style="grid-template-columns: 1fr 1.15fr">
+    <div>
+      <p style="margin-bottom:4px">Plan Kaoka Asociación</p>
+      <div class="cifra">130.000 COP</div>
+      <p style="margin-top:6px">al mes por asociación · paga la asociación</p>
+      <ul style="margin-top:18px">
+        <li>Instalación local y capacitación de 2 h</li>
+        <li>Hasta 5 usuarios · lotes y consultas ilimitados</li>
+        <li>Respaldo diario guiado y verificación mensual</li>
+        <li>Soporte por WhatsApp L–V, 8 a. m. a 5 p. m.</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>Costo mensual estimado</th><th>COP</th></tr>
+        <tr><td>Soporte: 3 h × 25.000</td><td>75.000</td></tr>
+        <tr><td>Visita trimestral prorrateada</td><td>15.000</td></tr>
+        <tr><td>Nube, IA, licencias</td><td>0</td></tr>
+        <tr><td><b>Total</b></td><td><b>90.000</b></td></tr>
+      </table>
+      <p style="margin-top:20px">Usamos nuestra propia fórmula: 90.000 ÷ (1 − 0,30) = 128.571 → <b>130.000 COP</b>, margen 30,8 %.</p>
+      <p style="font-size:17px;color:#8a7d68">Cifras estimadas; se validan en el piloto.</p>
+    </div>
+  </div>
+</section>
+
+<section class="s oscura">
+  <div class="num">5 / 5 · PILOTO</div>
+  <p class="etq">Piloto de 30 días</p>
+  <h2>Buscamos una asociación aliada para validar estas metas en operación.</h2>
+  <div class="col3" style="margin-top:12px">
+    <div class="tarjeta"><b>Trazabilidad completa</b><span>% de productos con origen, transformación y estado consultables.<br><br><b style="display:inline;font-size:30px">≥ 95 %</b></span></div>
+    <div class="tarjeta"><b>Respuesta a un reclamo</b><span>Minutos para dar origen y kg afectados (se mide el día 1 con cuadernos).<br><br><b style="display:inline;font-size:30px">&lt; 5 min</b></span></div>
+    <div class="tarjeta"><b>Mermas identificadas</b><span>% de etapas con merma calculada y alerta si supera 15 %.<br><br><b style="display:inline;font-size:30px">100 %</b></span></div>
+  </div>
+  <p class="grande" style="margin-top:34px">Semana 1: instalación y medición inicial · Semanas 2–3: uso diario · Semana 4: medición final y reclamo simulado.</p>
+  <p class="grande"><b>130.000 COP</b> el primer mes, con instalación, capacitación, respaldo y soporte. Si no se cumplen las dos primeras metas, el segundo mes no se cobra.</p>
+  <div class="pie">Las metas son hipótesis · Repositorio: github.com/SantiagoAndresValencia/Reto-Hackathon-FUCTIH-Nexus-Code</div>
+</section>
+
+</body>
+</html>

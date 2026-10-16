@@ -1,0 +1,10 @@
+flowchart LR
+  A([Iniciar sesión]) --> B[Recibir lote<br/>RF01]
+  B --> C[Transformar<br/>sin exceder existencia<br/>RF02 · RF08]
+  C --> D[Ver merma, costo,<br/>margen y precio sugerido<br/>RF04 · RF05 · RF12]
+  D --> E{Admin revisa alerta}
+  E -->|Liberar con motivo| F[Producto liberado<br/>RF09]
+  E -->|Bloquear con motivo| G[Producto bloqueado<br/>RF09]
+  F --> H[Ficha pública por código<br/>RF06]
+  G --> H
+  H --> I[Auditoría y CSV<br/>RF10 · RF11]
