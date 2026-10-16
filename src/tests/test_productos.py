@@ -5,7 +5,7 @@ def test_operador_no_puede_liberar(cliente):
     ingresar(cliente, "operador")
     transformar(cliente)
     respuesta = cliente.post("/productos/P-CAC001-1/estado",
-                             data={"estado": "liberado", "motivo": "ok", "lote": "CAC001"})
+                             data={"estado": "liberado", "motivo": "ok"})
     assert respuesta.status_code == 403
     assert "revisión" in cliente.get("/ficha/P-CAC001-1").get_data(as_text=True)
     cliente.get("/logout")
@@ -19,7 +19,7 @@ def test_bloquear_se_ve_en_ficha_y_auditoria(cliente):
     cliente.get("/logout")
     ingresar(cliente, "admin")
     cliente.post("/productos/P-CAC001-1/estado",
-                 data={"estado": "bloqueado", "motivo": "Reclamo del comprador", "lote": "CAC001"})
+                 data={"estado": "bloqueado", "motivo": "Reclamo del comprador"})
     cliente.get("/logout")
     ficha = cliente.get("/ficha/P-CAC001-1").get_data(as_text=True)
     assert "bloqueado" in ficha
@@ -33,7 +33,7 @@ def test_bloquear_sin_motivo_no_cambia(cliente):
     transformar(cliente)
     cliente.get("/logout")
     ingresar(cliente, "admin")
-    respuesta = cliente.post("/productos/P-CAC001-1/estado", data={"estado": "bloqueado", "motivo": "", "lote": "CAC001"},
+    respuesta = cliente.post("/productos/P-CAC001-1/estado", data={"estado": "bloqueado", "motivo": ""},
                              follow_redirects=True)
     assert "Motivo" in respuesta.get_data(as_text=True)
 
@@ -58,3 +58,18 @@ def test_csv_filtrado_por_origen(cliente):
 def test_operador_no_exporta_csv(cliente):
     ingresar(cliente, "operador")
     assert cliente.get("/admin/exportar.csv").status_code == 403
+
+
+def test_cambiar_estado_de_producto_inexistente_da_404(cliente):
+    ingresar(cliente, "admin")
+    respuesta = cliente.post("/productos/P-NOEXISTE-1/estado", data={"estado": "liberado", "motivo": "ok"})
+    assert respuesta.status_code == 404
+
+
+def test_csv_neutraliza_formulas(cliente):
+    ingresar(cliente, "operador")
+    cliente.post("/lotes/nuevo", data={"codigo": "CAC009", "productor": "X", "origen": "=HYPERLINK(\"x\")",
+                                       "fecha_recepcion": "2026-10-15", "cantidad": "10"})
+    ingresar(cliente, "admin")
+    contenido = cliente.get("/admin/exportar.csv").get_data(as_text=True)
+    assert "'=HYPERLINK" in contenido

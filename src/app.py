@@ -1,4 +1,5 @@
 import os
+import secrets
 
 import click
 from flask import Flask, redirect, render_template, url_for
@@ -19,7 +20,9 @@ LOTES_DEMO = [
 ]
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("CACAO_SECRET", "solo-para-desarrollo")
+app.config["SECRET_KEY"] = os.environ.get("CACAO_SECRET") or secrets.token_hex(32)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.teardown_appcontext(cerrar_db)
 app.register_blueprint(bp_auth)
 app.register_blueprint(bp_lotes)
@@ -54,6 +57,11 @@ def prohibido(_error):
 @app.errorhandler(404)
 def no_encontrado(_error):
     return render_template("error.html", mensaje_error="La página o el registro no existe."), 404
+
+
+@app.errorhandler(500)
+def error_interno(_error):
+    return render_template("error.html", mensaje_error="Ocurrió un error inesperado. No se guardó nada a medias."), 500
 
 
 @app.cli.command("cargar-demo")

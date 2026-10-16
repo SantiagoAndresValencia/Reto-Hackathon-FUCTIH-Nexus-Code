@@ -185,13 +185,19 @@
           {% if e.margen is not none %}<span>({{ e.precio_venta|miles }} − {{ e.costo_unitario|miles }}) ÷ {{ e.precio_venta|miles }} × 100</span>{% endif %}
           <span>Precio de venta: {{ e.precio_venta|miles if e.precio_venta else '—' }} COP/kg</span></p>
       </article>
+      <article class="indicador">
+        <p class="indicador-cabeza">Precio justo sugerido {{ icono('moneda') }}</p>
+        <p class="indicador-valor">{{ e.precio_sugerido|miles }}<small> COP/kg</small></p>
+        <p class="formula"><code>costo unitario ÷ (1 − margen objetivo)</code>
+          <span>Para ganar {{ e.margen_objetivo|int }} % sobre la venta</span></p>
+      </article>
+
     </div>
     <p class="supuesto">Costo total {{ e.costo_total|miles }} COP · incluye: {{ e.costos_incluidos or 'sin costos registrados' }}. Son reglas del ejercicio, no estándares agronómicos.</p>
 
     {% if e.producto %}
     <hr class="separador">
     <form class="estado-form" method="post" action="{{ url_for('productos.estado', codigo=e.producto) }}" data-estado-form>
-      <input type="hidden" name="lote" value="{{ lote.codigo }}">
       <div class="campo">
         <label for="motivo-{{ e.producto }}">Motivo del cambio de estado de {{ e.producto }}</label>
         <input class="control" id="motivo-{{ e.producto }}" name="motivo" required aria-describedby="ayuda-{{ e.producto }}" placeholder="Ej. Calidad verificada por el comité">
