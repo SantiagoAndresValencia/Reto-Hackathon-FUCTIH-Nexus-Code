@@ -98,40 +98,7 @@
     });
   });
 
-<<<<<<< Updated upstream
-  // Transformar: avisar mientras se escribe si la entrada supera lo disponible o la merma pasa de 15 %
-=======
-  // Pedido: total en vivo y aviso si se pide más de lo disponible
-  document.querySelectorAll("[data-pedido]").forEach(function (form) {
-    var precio = parseFloat(form.getAttribute("data-precio")), max = parseFloat(form.getAttribute("data-max"));
-    var kilos = form.querySelector("#kilos"), total = form.querySelector("[data-total]");
-    var ayuda = document.getElementById("ayuda-kilos"), textoAyuda = ayuda ? ayuda.textContent : "";
-    var miles = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 });
-    function revisar() {
-      var k = parseFloat(String(kilos.value).replace(",", "."));
-      var valido = !isNaN(k) && k > 0;
-      total.textContent = valido ? miles.format(k * precio) + " COP" : "— COP";
-      var excede = valido && k > max + 0.000001;
-      ayuda.textContent = excede ? "Supera lo disponible: solo hay " + String(max).replace(".", ",") + " kg." : textoAyuda;
-      ayuda.style.color = excede ? "var(--bloqueado)" : "";
-      kilos.setAttribute("aria-invalid", String(excede));
-    }
-    kilos.addEventListener("input", revisar);
-    revisar();
-  });
-
-  // Copiar el enlace privado del pedido
-  document.querySelectorAll("[data-copiar]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var campo = document.getElementById(b.getAttribute("data-copiar"));
-      function listo() { b.textContent = "Copiado"; setTimeout(function () { b.textContent = "Copiar"; }, 1600); }
-      if (navigator.clipboard) navigator.clipboard.writeText(campo.value).then(listo, function () { campo.select(); });
-      else { campo.select(); document.execCommand("copy"); listo(); }
-    });
-  });
-
   // Transformar: guiar mientras se escribe si la merma, el costo y el precio están dentro de lo ideal
->>>>>>> Stashed changes
   document.querySelectorAll("[data-transformar]").forEach(function (form) {
     var disp = document.querySelector("[data-disponible]");
     var max = disp ? parseFloat(disp.getAttribute("data-disponible")) : NaN;

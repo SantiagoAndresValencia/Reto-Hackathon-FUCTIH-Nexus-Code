@@ -1,5 +1,6 @@
 
 UMBRAL_MERMA = 15.0  # porcentaje máximo de merma permitido
+MARGEN_OBJETIVO = 30.0  # margen que la asociación quiere ganar sobre la venta
 
 
 def calcular_merma(entrada, salida):
