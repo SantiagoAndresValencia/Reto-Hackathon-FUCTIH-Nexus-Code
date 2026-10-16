@@ -72,7 +72,7 @@
           <td data-etiqueta="Recepción">{{ l.fecha_recepcion }}</td>
           <td data-etiqueta="Recibido" class="num">{{ l.recibido|kg }} {{ l.unidad }}</td>
           <td data-etiqueta="Consumo">
-            <div class="consumo"><div class="barra" aria-hidden="true"><i style="width: {{ '%.1f'|format(pct) }}%"></i></div><small>{{ '%.0f'|format(pct) }} %</small></div>
+            <div class="consumo"><progress class="barra" value="{{ '%.1f'|format(pct) }}" max="100" aria-hidden="true"></progress><small>{{ '%.0f'|format(pct) }} %</small></div>
           </td>
           <td data-etiqueta="Disponible" class="num"><b>{{ l.disponible|kg }} {{ l.unidad }}</b></td>
           <td data-etiqueta="Productos"><span class="estados">{% for e in l.estados.split(',') %}{{ pildora(e if e != 'sin producto' else '') }}{% endfor %}</span></td>

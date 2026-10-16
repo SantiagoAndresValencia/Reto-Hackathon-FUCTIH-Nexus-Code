@@ -45,7 +45,7 @@
     <div><span>Consumido en transformaciones</span><b>{{ lote.consumido|kg }}<small>{{ lote.unidad }}</small></b></div>
     <div><span>Disponible</span><b>{{ lote.disponible|kg }}<small>{{ lote.unidad }}</small></b></div>
   </div>
-  <div class="barra" role="img" aria-label="Consumido {{ '%.0f'|format(pct_consumo) }} % del lote"><i style="width: {{ '%.1f'|format(pct_consumo) }}%"></i></div>
+  <progress class="barra" value="{{ '%.1f'|format(pct_consumo) }}" max="100" aria-label="Consumido {{ '%.0f'|format(pct_consumo) }} % del lote"></progress>
 </section>
 
 <section class="pipeline vidrio aparece" aria-labelledby="t-recorrido" data-pipeline>

@@ -20,7 +20,7 @@
   <div class="inventario" style="grid-template-columns:1fr">
     <div><b data-disponible="{{ inventario.disponible }}">{{ inventario.disponible|kg }}<small>kg</small></b></div>
   </div>
-  <div class="barra" aria-hidden="true"><i style="width: {{ '%.1f'|format(pct) }}%"></i></div>
+  <progress class="barra" value="{{ '%.1f'|format(pct) }}" max="100" aria-hidden="true"></progress>
 </section>
 
 {% if error %}

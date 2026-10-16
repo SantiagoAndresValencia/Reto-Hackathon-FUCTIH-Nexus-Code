@@ -289,8 +289,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .inventario span { font-size: 12.5px; color: var(--espresso-3); }
 .inventario b { display: block; font: 650 30px/1.15 var(--display); letter-spacing: -.03em; }
 .inventario small { font-size: 15px; font-weight: 500; color: var(--espresso-3); margin-left: 3px; }
-.barra { height: 6px; background: rgba(36, 22, 15, .08); border-radius: 6px; overflow: hidden; margin-top: 16px; }
-.barra i { display: block; height: 100%; background: linear-gradient(90deg, var(--brote), var(--hoja)); border-radius: 6px; transform-origin: left; animation: crecer 700ms var(--curva) both; }
+.barra { display: block; width: 100%; height: 6px; border: 0; appearance: none; -webkit-appearance: none;
+  background: rgba(36, 22, 15, .08); border-radius: 6px; overflow: hidden; margin-top: 16px; }
+.barra::-webkit-progress-bar { background: transparent; }
+.barra::-webkit-progress-value { background: linear-gradient(90deg, var(--brote), var(--hoja)); border-radius: 6px; }
+.barra::-moz-progress-bar { background: linear-gradient(90deg, var(--brote), var(--hoja)); border-radius: 6px; }
 
 /* ---------- Indicadores ---------- */
 .indicadores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -459,7 +462,6 @@ textarea.control { min-height: 84px; resize: vertical; }
 @keyframes trazo { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .fase::after { transform-origin: left; }
 .fase::before { transform-origin: left; }
-@keyframes crecer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .aparece { animation: entrar 420ms var(--curva) both; }
 .aparece:nth-child(2) { animation-delay: 40ms; }
 .aparece:nth-child(3) { animation-delay: 80ms; }
