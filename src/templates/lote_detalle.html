@@ -38,7 +38,6 @@
 <section class="panel vidrio aparece" aria-labelledby="t-inventario">
   <div class="panel-titulo">
     <h2 id="t-inventario">{{ icono('balanza') }}Inventario del lote</h2>
-    <p>Disponible = recibido − consumido</p>
   </div>
   <div class="inventario">
     <div><span>Recibido</span><b>{{ lote.recibido|kg }}<small>{{ lote.unidad }}</small></b></div>
@@ -186,7 +185,7 @@
           <span>Precio de venta: {{ e.precio_venta|miles if e.precio_venta else '—' }} COP/kg</span></p>
       </article>
     </div>
-    <p class="supuesto">Costo total {{ e.costo_total|miles }} COP · incluye: {{ e.costos_incluidos or 'sin costos registrados' }}. Son reglas del ejercicio, no estándares agronómicos.</p>
+    <p class="supuesto">Costo total {{ e.costo_total|miles }} COP · incluye: {{ e.costos_incluidos or 'sin costos registrados' }}.</p>
 
     {% if e.producto %}
     <hr class="separador">
