@@ -25,10 +25,51 @@
   </ol>
 
   <dl class="datos">
+    <div><dt>Precio</dt><dd>{{ f.precio_venta|miles }} COP/{{ f.unidad }}</dd></div>
+    <div><dt>Disponible para pedir</dt><dd>{{ [disponible, 0]|max|kg }} {{ f.unidad }}</dd></div>
     <div><dt>Código</dt><dd>{{ f.codigo_producto }}</dd></div>
     <div><dt>Lote de origen</dt><dd>{{ f.lote_codigo }}</dd></div>
   </dl>
 </article>
+
+{% if f.en_venta and disponible > 0 %}
+<section class="panel vidrio aparece" id="pedir" aria-labelledby="t-pedir">
+  <h2 class="panel-titulo" id="t-pedir" style="margin-bottom:6px">Hacer un pedido</h2>
+  <p class="subtitulo" style="font-size:14px">El administrador de la asociación revisa cada pedido y da el visto bueno final antes del despacho.</p>
+  {% if error_pedido %}
+  <div class="aviso aviso-error" role="alert" style="margin-top:16px">{{ icono('alerta') }}<div><b>No se registró el pedido</b>{{ error_pedido }}</div></div>
+  {% endif %}
+  <form class="formulario pedido-form" method="post" action="{{ url_for('pedidos.nuevo', codigo=f.codigo_producto) }}"
+        data-pedido data-precio="{{ f.precio_venta }}" data-max="{{ disponible }}" novalidate>
+    <div class="campo">
+      <label for="kilos">Cantidad</label>
+      <div class="con-unidad">
+        <input class="control" id="kilos" name="kilos" inputmode="decimal" value="{{ form.get('kilos', '') }}" placeholder="10"
+               aria-describedby="ayuda-kilos" required {{ 'autofocus' if error_pedido }}>
+        <span>{{ f.unidad }}</span>
+      </div>
+      <span class="ayuda" id="ayuda-kilos">Máximo {{ disponible|kg }} {{ f.unidad }}.</span>
+    </div>
+    <div class="campo">
+      <label for="comprador">Nombre o empresa</label>
+      <input class="control" id="comprador" name="comprador" value="{{ form.get('comprador', '') }}" autocomplete="organization" required>
+    </div>
+    <div class="campo">
+      <label for="contacto">Teléfono o correo</label>
+      <input class="control" id="contacto" name="contacto" value="{{ form.get('contacto', '') }}" autocomplete="email" aria-describedby="ayuda-contacto" required>
+      <span class="ayuda" id="ayuda-contacto">Lo necesitará para consultar el pedido. Solo lo ve el administrador.</span>
+    </div>
+    <div class="total-pedido" aria-live="polite">
+      <span>Total estimado</span>
+      <b data-total>— COP</b>
+      <small>{{ f.precio_venta|miles }} COP × {{ f.unidad }}</small>
+    </div>
+    <div class="pie-formulario"><button class="boton boton-primario" type="submit" style="width:100%">{{ icono('producto') }}Enviar pedido</button></div>
+  </form>
+</section>
+{% elif f.en_venta %}
+<p class="aviso aviso-info vidrio" role="status">{{ icono('info') }}<span>Este producto está agotado: todo su inventario está apartado por otros pedidos.</span></p>
+{% endif %}
 
 <section class="panel vidrio aparece" aria-labelledby="t-otra">
   <h2 class="panel-titulo" id="t-otra" style="margin-bottom:12px">Consultar otro producto</h2>

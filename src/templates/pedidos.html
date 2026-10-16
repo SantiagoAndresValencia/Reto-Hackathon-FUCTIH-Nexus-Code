@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Pedidos{% endblock %}
+{% block contenido %}
+{% set etiquetas = {'pendiente': ('pendiente', 'Pendiente'), 'aprobado': ('liberado', 'Aprobado'), 'rechazado': ('bloqueado', 'Rechazado'), 'cancelado': ('sin', 'Cancelado')} %}
+<header class="encabezado vidrio aparece">
+  <div>
+    <h1 class="titulo">Pedidos de compradores</h1>
+    <p class="subtitulo">Usted da el visto bueno final: apruebe el pedido para despacharlo o recházelo con un motivo.</p>
+  </div>
+</header>
+
+{% if error %}
+<div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se cambió el pedido</b>{{ error }}</div></div>
+{% endif %}
+
+<section class="resumen" aria-label="Resumen de pedidos">
+  <div class="resumen-item vidrio aparece"><span>{{ icono('reloj') }}Por revisar</span><b>{{ conteo.get('pendiente', 0) }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('ok') }}Aprobados</span><b>{{ conteo.get('aprobado', 0) }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('bloqueo') }}Rechazados o cancelados</span><b>{{ conteo.get('rechazado', 0) + conteo.get('cancelado', 0) }}</b></div>
+  <div class="resumen-item vidrio aparece"><span>{{ icono('balanza') }}Apartado</span><b>{{ apartado|kg }} <small>kg</small></b></div>
+</section>
+
+<section class="panel vidrio aparece" aria-labelledby="t-pedidos">
+  <div class="panel-titulo"><h2 id="t-pedidos">{{ icono('lista') }}Pedidos</h2></div>
+  <form class="filtros" method="get" data-auto-filtro>
+    <div class="campo">
+      <label for="estado">Estado del pedido</label>
+      <select class="control" id="estado" name="estado">
+        <option value="">Todos los estados</option>
+        {% for clave, (_, nombre) in etiquetas.items() %}<option value="{{ clave }}" {{ 'selected' if clave == estado }}>{{ nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="boton boton-secundario sin-js" type="submit">{{ icono('buscar') }}Filtrar</button>
+    {% if estado %}<a class="boton boton-secundario" href="{{ url_for('pedidos.lista') }}">Quitar filtro</a>{% endif %}
+  </form>
+  <hr class="separador">
+
+  {% if pedidos %}
+  <ul class="pedidos-lista">
+    {% for d in pedidos %}
+    <li class="pedido-fila vidrio-suave">
+      <div class="pedido-resumen">
+        <div>
+          <b class="codigo">{{ d.numero }}</b>
+          <span class="estado estado-{{ etiquetas[d.estado][0] }}">{{ etiquetas[d.estado][1] }}</span>
+          {% if d.estado in ('pendiente', 'aprobado') and d.estado_producto != 'liberado' %}
+          <span class="estado estado-bloqueado">Producto {{ d.estado_producto }}</span>
+          {% endif %}
+        </div>
+        <small>{{ d.creado_en }}{% if d.actualizado_en %} · actualizado {{ d.actualizado_en }}{% endif %}</small>
+      </div>
+      <dl class="datos pedido-datos">
+        <div><dt>Producto</dt><dd><a href="{{ url_for('lotes.detalle', codigo=d.lote_codigo) }}">{{ d.nombre }} · {{ d.producto_codigo }}</a></dd></div>
+        <div><dt>Comprador</dt><dd>{{ d.comprador }}<br><small>{{ d.contacto }}</small></dd></div>
+        <div><dt>Cantidad</dt><dd>{{ d.kilos|kg }} {{ d.unidad }}</dd></div>
+        <div><dt>Total</dt><dd>{{ d.total|miles }} COP<br><small>{{ d.precio_kg|miles }} COP/{{ d.unidad }}</small></dd></div>
+      </dl>
+      {% if d.motivo_estado %}
+      <p class="pedido-motivo"><b>{{ 'Razón del comprador' if d.estado == 'cancelado' else 'Motivo' }}:</b> {{ d.motivo_estado }}</p>
+      {% endif %}
+      {% if d.estado in ('pendiente', 'aprobado') %}
+      <form class="estado-form" method="post" action="{{ url_for('pedidos.estado', numero=d.numero) }}" data-estado-form="Escriba el motivo antes de aprobar o rechazar.">
+        <div class="campo">
+          <label for="motivo-{{ d.id }}">Motivo de la decisión sobre {{ d.numero }}</label>
+          <input class="control" id="motivo-{{ d.id }}" name="motivo" required aria-describedby="ayuda-{{ d.id }}" placeholder="{{ 'Ej. Pago confirmado' if d.estado == 'pendiente' else 'Ej. El comprador no respondió' }}">
+          <span class="ayuda" id="ayuda-{{ d.id }}">Obligatorio. Queda en la auditoría y lo ve el comprador.</span>
+        </div>
+        {% if d.estado == 'pendiente' %}<button class="boton boton-primario" name="estado" value="aprobado">{{ icono('ok') }}Aprobar</button>{% endif %}
+        <button class="boton boton-peligro" name="estado" value="rechazado">{{ icono('bloqueo') }}Rechazar</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vacio">{{ icono('info') }}{% if estado %}No hay pedidos en estado «{{ etiquetas.get(estado, ('', estado))[1]|lower }}».{% else %}Todavía no hay pedidos. Aparecerán aquí cuando un comprador pida un producto liberado.{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

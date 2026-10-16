@@ -7,7 +7,7 @@
   <div>
     <nav class="migas" aria-label="Ruta"><a href="{{ url_for('auth.login') }}">Ingreso</a><span aria-hidden="true">/</span><span>Comprador</span></nav>
     <h1 class="titulo">Productos disponibles</h1>
-    <p class="subtitulo">Cacao del Huila que ya pasó la revisión de calidad y está liberado para la venta.</p>
+    <p class="subtitulo">Cacao del Huila liberado para la venta. Elija un producto para ver su recorrido y pedirlo por kilos.</p>
   </div>
   
 </header>
@@ -57,12 +57,12 @@
           </span>
           <dl class="producto-datos">
             <div><dt>Proceso</dt><dd>{{ p.etapa }}</dd></div>
-            <div><dt>Cantidad</dt><dd>{{ p.cantidad|kg }} {{ p.unidad }}</dd></div>
+            <div><dt>Disponible</dt><dd>{% if p.disponible > 0 %}{{ p.disponible|kg }} {{ p.unidad }}{% else %}Agotado{% endif %}</dd></div>
             <div><dt>Precio</dt><dd>{{ p.precio_venta|miles }} <small>COP/{{ p.unidad }}</small></dd></div>
           </dl>
           <span class="producto-pie">
             <code>{{ p.codigo_producto }}</code>
-            <span>Ver trazabilidad{{ icono('chev') }}</span>
+            <span>{{ 'Ver y pedir' if p.disponible > 0 else 'Ver trazabilidad' }}{{ icono('chev') }}</span>
           </span>
         </a>
       </li>
@@ -75,6 +75,7 @@
     {% endif %}
   </section>
 
+  <div class="comprador-lado">
   <aside class="panel vidrio aparece buscador" id="buscar-codigo" aria-labelledby="t-buscar">
     <div class="pasaporte-icono">{{ icono('ficha') }}</div>
     <h2 class="buscador-titulo" id="t-buscar">Búsqueda detallada</h2>
@@ -88,9 +89,29 @@
       </div>
       <div class="pie-formulario"><button class="boton boton-primario" type="submit" style="width:100%">{{ icono('buscar') }}Ver ficha</button></div>
     </form>
+  </aside>
+
+  <aside class="panel vidrio aparece buscador" id="seguir-pedido" aria-labelledby="t-seguir">
+    <h2 class="buscador-titulo" id="t-seguir">Seguir un pedido</h2>
+    <p class="subtitulo">Vea si el administrador ya lo aprobó, o cancélelo dejando la razón.</p>
+    {% if error_pedido %}
+    <div class="aviso aviso-error" role="alert" style="margin-top:14px">{{ icono('alerta') }}<div>El número y el contacto no coinciden con ningún pedido.</div></div>
+    {% endif %}
+    <form class="formulario" method="get" action="{{ url_for('pedidos.buscar') }}">
+      <div class="campo">
+        <label for="numero">Número del pedido</label>
+        <input class="control mayusculas" id="numero" name="numero" value="{{ pedido }}" placeholder="PED-0001" required {{ 'autofocus' if error_pedido }}>
+      </div>
+      <div class="campo">
+        <label for="contacto-pedido">Teléfono o correo del pedido</label>
+        <input class="control" id="contacto-pedido" name="contacto" required>
+      </div>
+      <div class="pie-formulario"><button class="boton boton-secundario" type="submit" style="width:100%">{{ icono('buscar') }}Ver mi pedido</button></div>
+    </form>
     <hr class="separador">
     {% if session.usuario %}<a href="{{ url_for('lotes.lista_lotes') }}">Volver a los lotes</a>
     {% else %}<a href="{{ url_for('auth.login') }}">Ingresar como personal de la asociación</a>{% endif %}
   </aside>
+  </div>
 </div>
 {% endblock %}

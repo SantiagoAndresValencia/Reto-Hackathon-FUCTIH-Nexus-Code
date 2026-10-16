@@ -249,3 +249,24 @@ def test_historial_no_se_borra(conn, tabla):
     with pytest.raises(sqlite3.IntegrityError, match="HISTORIAL_INMUTABLE"):
         conn.execute(f"DELETE FROM {tabla}")
     assert conn.execute(f"SELECT COUNT(*) FROM {tabla}").fetchone()[0] == 1
+
+
+def test_pedidos_no_sobrevenden_ni_se_reabren(conn):
+    _lote(conn)
+    tid = _transformacion(conn)
+    _producto(conn, tid, codigo="P-CAC001-1", estado="pendiente")
+    insertar = ("INSERT INTO pedidos (token, producto_codigo, comprador, contacto, kilos, precio_kg) "
+                "VALUES (?, 'P-CAC001-1', 'C', 'c@x.co', ?, 1000)")
+    with pytest.raises(sqlite3.IntegrityError, match="PRODUCTO_NO_DISPONIBLE"):
+        conn.execute(insertar, ("t" * 20, 1))
+    conn.execute("UPDATE productos SET estado = 'liberado', motivo_estado = 'ok' WHERE codigo = 'P-CAC001-1'")
+    disponible = conn.execute("SELECT cantidad FROM productos WHERE codigo = 'P-CAC001-1'").fetchone()[0]
+    conn.execute(insertar, ("a" * 20, disponible))
+    with pytest.raises(sqlite3.IntegrityError, match="INVENTARIO_INSUFICIENTE"):
+        conn.execute(insertar, ("b" * 20, 1))
+    conn.execute("UPDATE pedidos SET estado = 'cancelado', motivo_estado = 'cambio' WHERE token = ?", ("a" * 20,))
+    with pytest.raises(sqlite3.IntegrityError, match="PEDIDO_CERRADO"):
+        conn.execute("UPDATE pedidos SET estado = 'aprobado', motivo_estado = 'x' WHERE token = ?", ("a" * 20,))
+    with pytest.raises(sqlite3.IntegrityError, match="CHECK"):
+        conn.execute(insertar.replace("'C'", "'C2'").replace("kilos, precio_kg)", "kilos, precio_kg, estado)")
+                     .replace("1000)", "1000, 'rechazado')"), ("c" * 20, 1))

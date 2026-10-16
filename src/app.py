@@ -8,6 +8,7 @@ from src import respaldo
 from src.auth import bp_auth
 from src.db import cerrar_db, crear_tablas, obtener_db
 from src.lotes import bp_lotes, crear_lote
+from src.pedidos import bp_pedidos
 from src.productos import bp_productos
 from src.validaciones import ErrorValidacion
 
@@ -24,6 +25,7 @@ app.teardown_appcontext(cerrar_db)
 app.register_blueprint(bp_auth)
 app.register_blueprint(bp_lotes)
 app.register_blueprint(bp_productos)
+app.register_blueprint(bp_pedidos)
 respaldo.registrar_comandos(app)
 crear_tablas()
 

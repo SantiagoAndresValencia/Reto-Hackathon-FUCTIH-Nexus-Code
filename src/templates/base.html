@@ -34,6 +34,7 @@
         <a href="{{ url_for('productos.comprador') }}">{{ icono('ficha') }}Vista del comprador</a>
         {% if session.rol == 'admin' %}
         <span class="nav-titulo">Administración</span>
+        <a href="{{ url_for('pedidos.lista') }}" {% if ep == 'pedidos.lista' %}aria-current="page"{% endif %}>{{ icono('producto') }}Pedidos</a>
         <a href="{{ url_for('auth.auditoria') }}" {% if ep == 'auth.auditoria' %}aria-current="page"{% endif %}>{{ icono('escudo') }}Auditoría</a>
         <a href="{{ url_for('productos.exportar') }}">{{ icono('descargar') }}Exportar CSV</a>
         {% endif %}
