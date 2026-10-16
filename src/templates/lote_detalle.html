@@ -34,6 +34,9 @@
 {% if error %}
 <div class="aviso aviso-error" role="alert">{{ icono('alerta') }}<div><b>No se guardó el cambio</b>{{ error }}</div></div>
 {% endif %}
+{% if mensaje %}
+<div class="aviso aviso-exito" role="status">{{ icono('ok') }}<div><b>{{ mensaje }}</b>El comprador ya no puede pedir estos productos y el cambio quedó en la auditoría.</div></div>
+{% endif %}
 
 <section class="panel vidrio aparece" aria-labelledby="t-inventario">
   <div class="panel-titulo">
@@ -46,6 +49,33 @@
   </div>
   <div class="barra" role="img" aria-label="Consumido {{ '%.0f'|format(pct_consumo) }} % del lote"><i style="width: {{ '%.1f'|format(pct_consumo) }}%"></i></div>
 </section>
+
+{% if es_admin and afectado.productos %}
+<section class="panel vidrio aparece" aria-labelledby="t-incidencia">
+  <div class="panel-titulo">
+    <h2 id="t-incidencia">{{ icono('escudo') }}Incidencia de calidad</h2>
+    <p>{{ afectado.productos }} producto(s) de este lote</p>
+  </div>
+  <div class="inventario inventario-cuatro">
+    <div><span>Producido en el lote</span><b>{{ afectado.producido|kg }}<small>kg</small></b></div>
+    <div><span>Bloqueado</span><b>{{ afectado.bloqueado|kg }}<small>kg</small></b></div>
+    <div><span>En pedidos pendientes</span><b>{{ afectado.pedidos_pendientes|kg }}<small>kg</small></b></div>
+    <div><span>En pedidos aprobados</span><b>{{ afectado.pedidos_aprobados|kg }}<small>kg</small></b></div>
+  </div>
+  {% if afectado.sin_bloquear %}
+  <form class="estado-form" method="post" action="{{ url_for('productos.bloquear', codigo=lote.codigo) }}" style="margin-top:16px">
+    <div class="campo">
+      <label for="motivo-lote">Motivo para bloquear todo el lote {{ lote.codigo }}</label>
+      <input class="control" id="motivo-lote" name="motivo" required aria-describedby="ayuda-lote" placeholder="Ej. Reclamo del comprador por humedad">
+      <span class="ayuda" id="ayuda-lote">Bloquea a la vez los {{ afectado.sin_bloquear }} producto(s) sin bloquear. No borra nada: queda en la auditoría.</span>
+    </div>
+    <button class="boton boton-peligro">{{ icono('bloqueo') }}Bloquear todo el lote</button>
+  </form>
+  {% else %}
+  <p class="vacio" style="margin-top:16px">{{ icono('bloqueo') }}Todos los productos de este lote están bloqueados.{% if afectado.pedidos_pendientes %} Revise los pedidos pendientes en Pedidos.{% endif %}</p>
+  {% endif %}
+</section>
+{% endif %}
 
 <section class="pipeline vidrio aparece" aria-labelledby="t-recorrido" data-pipeline>
   <div class="panel-titulo">
@@ -236,7 +266,7 @@
             <td data-etiqueta="Etapa">{{ e.etapa }}</td>
             <td data-etiqueta="Cantidad" class="num">{{ e.salida|kg }} kg</td>
             <td data-etiqueta="Estado">{{ estado(e.estado) }}</td>
-            <td class="sin-etiqueta num"><a href="{{ url_for('productos.ficha', codigo=e.producto) }}">Ver ficha pública</a></td>
+            <td class="sin-etiqueta num"><a href="{{ url_for('productos.ficha', codigo=e.producto) }}">Ver ficha pública</a> · <a href="{{ url_for('productos.etiqueta', codigo=e.producto) }}">Etiqueta QR</a></td>
           </tr>
         {% endfor %}
         </tbody>

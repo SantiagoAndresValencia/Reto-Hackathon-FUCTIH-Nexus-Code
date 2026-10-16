@@ -1,0 +1,22 @@
+{% extends "publico.html" %}
+{% from "_iconos.html" import icono %}
+{% block titulo %}Etiqueta {{ f.codigo_producto }}{% endblock %}
+{% block contenido %}
+{% if local %}
+<p class="aviso aviso-info vidrio no-imprimir" role="status">{{ icono('info') }}<span>Abrió Kaoka como {{ request.host }}: un celular no puede abrir esa dirección. Para que el QR funcione, abra Kaoka con la IP del computador (por ejemplo http://192.168.1.203:5000).</span></p>
+{% endif %}
+<article class="pasaporte vidrio etiqueta" aria-labelledby="t-etiqueta">
+  <header class="pasaporte-cabeza">
+    <h1 id="t-etiqueta">{{ f.nombre }}</h1>
+    <p>Cacao de {{ f.origen }}, Huila · lote {{ f.lote_codigo }}</p>
+  </header>
+  <div class="qr" role="img" aria-label="Código QR de la ficha {{ f.codigo_producto }}">{{ qr|safe }}</div>
+  <p class="etiqueta-codigo">{{ f.codigo_producto }}</p>
+  <p class="subtitulo">Escanee para ver el origen y el recorrido de este producto.</p>
+  <p class="etiqueta-enlace">{{ enlace }}</p>
+</article>
+<p class="no-imprimir" style="text-align:center">
+  <button class="boton boton-primario" type="button" onclick="window.print()">{{ icono('producto') }}Imprimir etiqueta</button>
+  <a class="boton boton-secundario" href="{{ url_for('lotes.detalle', codigo=f.lote_codigo) }}">{{ icono('atras') }}Volver al lote</a>
+</p>
+{% endblock %}

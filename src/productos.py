@@ -1,6 +1,8 @@
 import csv
 import io
 
+import segno
+
 from flask import Blueprint, Response, abort, g, redirect, render_template, request, url_for
 
 from src.auditoria import registrar
@@ -27,6 +29,22 @@ def cambiar_estado(db, usuario, rol, codigo, estado, motivo):
                    (estado, motivo, codigo))
         registrar(db, usuario, f"cambiar estado ({motivo})", "producto", codigo,
                   "estado", producto["estado"], estado)
+
+
+def bloquear_lote(db, usuario, rol, lote, motivo):
+    """Hora 12: bloquea en una transacción todos los productos del lote que no estén bloqueados."""
+    exigir_admin(db, usuario, rol, "bloquear lote completo", "lote", lote)
+    motivo = texto(motivo, "Motivo")
+    productos = db.execute("SELECT codigo, estado, cantidad FROM productos WHERE lote_codigo = ? AND estado != 'bloqueado'",
+                           (lote,)).fetchall()
+    if not productos:
+        raise ErrorValidacion(f"El lote {lote} no tiene productos por bloquear.")
+    with db:
+        for p in productos:
+            db.execute("UPDATE productos SET estado = 'bloqueado', motivo_estado = ? WHERE codigo = ?", (motivo, p["codigo"]))
+            registrar(db, usuario, f"bloquear lote ({motivo})", "producto", p["codigo"], "estado", p["estado"], "bloqueado")
+        registrar(db, usuario, f"bloquear lote ({motivo})", "lote", lote, "productos bloqueados", "", len(productos))
+    return len(productos), sum(p["cantidad"] for p in productos)
 
 
 def ficha_publica(db, codigo):
@@ -75,6 +93,35 @@ def estado(codigo):
     except ErrorValidacion as e:
         return redirect(url_for("lotes.detalle", codigo=lote, error=str(e)))
     return redirect(url_for("lotes.detalle", codigo=lote))
+
+
+@bp_productos.route("/lotes/<codigo>/bloquear", methods=["POST"])
+@login_requerido
+def bloquear(codigo):
+    codigo = codigo.upper()
+    db = obtener_db()
+    if db.execute("SELECT 1 FROM lotes WHERE codigo = ?", (codigo,)).fetchone() is None:
+        abort(404)
+    try:
+        cantidad, kg = bloquear_lote(db, g.usuario, g.rol, codigo, request.form.get("motivo"))
+    except PermisoDenegado:
+        abort(403)
+    except ErrorValidacion as e:
+        return redirect(url_for("lotes.detalle", codigo=codigo, error=str(e)))
+    return redirect(url_for("lotes.detalle", codigo=codigo,
+                            mensaje=f"Lote {codigo} bloqueado: {cantidad} producto(s), {kg:g} kg afectados."))
+
+
+@bp_productos.route("/productos/<codigo>/etiqueta")
+@login_requerido
+def etiqueta(codigo):
+    datos = ficha_publica(obtener_db(), codigo)
+    if datos is None:
+        abort(404)
+    enlace = url_for("productos.ficha", codigo=datos["codigo_producto"], _external=True)
+    qr = segno.make(enlace, error="m").svg_inline(scale=6, border=2, dark="#2b1a10", omitsize=True)
+    local = request.host.split(":")[0] in ("127.0.0.1", "localhost")
+    return render_template("etiqueta.html", f=datos, enlace=enlace, qr=qr, local=local)
 
 
 def catalogo(db, origen="", etapa=""):

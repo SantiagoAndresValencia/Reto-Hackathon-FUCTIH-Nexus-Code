@@ -112,7 +112,23 @@ def detalle(codigo):
             (codigo, f"P-{codigo}-%"),
         ).fetchall()
     return render_template("lote_detalle.html", error=request.args.get("error", ""),
-                           historial=historial, **datos)
+                           mensaje=request.args.get("mensaje", ""), historial=historial,
+                           afectado=afectacion(obtener_db(), codigo), **datos)
+
+
+def afectacion(db, codigo):
+    """Cantidades del lote para responder una incidencia: producido, bloqueado y comprometido en pedidos."""
+    return db.execute(
+        "SELECT COUNT(*) AS productos, COALESCE(SUM(cantidad), 0) AS producido, "
+        "COALESCE(SUM(CASE WHEN estado = 'bloqueado' THEN cantidad END), 0) AS bloqueado, "
+        "SUM(estado != 'bloqueado') AS sin_bloquear, "
+        "(SELECT COALESCE(SUM(kilos), 0) FROM pedidos pe JOIN productos pr ON pr.codigo = pe.producto_codigo "
+        " WHERE pr.lote_codigo = ? AND pe.estado = 'pendiente') AS pedidos_pendientes, "
+        "(SELECT COALESCE(SUM(kilos), 0) FROM pedidos pe JOIN productos pr ON pr.codigo = pe.producto_codigo "
+        " WHERE pr.lote_codigo = ? AND pe.estado = 'aprobado') AS pedidos_aprobados "
+        "FROM productos WHERE lote_codigo = ?",
+        (codigo, codigo, codigo),
+    ).fetchone()
 
 
 def registrar_transformacion(db, usuario, lote, formulario):
