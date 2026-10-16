@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lote {{ lote.codigo }}</title>
+</head>
+<body>
+  <p><a href="{{ url_for('lotes.lista_lotes') }}">Ver lotes</a></p>
+  <h1>Lote {{ lote.codigo }}</h1>
+  {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+
+  <h2>1. Recepción</h2>
+  <ul>
+    <li>Productor: {{ lote.productor }}</li>
+    <li>Origen: {{ lote.origen }}</li>
+    <li>Fecha: {{ lote.fecha_recepcion }}</li>
+    <li>Recibido: {{ '%g'|format(lote.recibido) }} kg · Consumido: {{ '%g'|format(lote.consumido) }} kg ·
+        <strong>Disponible: {{ '%g'|format(lote.disponible) }} kg</strong></li>
+  </ul>
+
+  {% for e in etapas %}
+  <h2>{{ loop.index + 1 }}. {{ e.etapa }}{% if e.producto %} → {{ e.producto }}{% endif %}</h2>
+  <ul>
+    <li>Responsable: {{ e.responsable }} · Fecha: {{ e.fecha }}</li>
+    <li>Entrada {{ '%g'|format(e.entrada) }} kg → Salida {{ '%g'|format(e.salida) }} kg</li>
+    {% if e.incidencias %}<li>Incidencias: {{ e.incidencias }}</li>{% endif %}
+    {% if e.producto %}
+      <li>Producto: {{ e.nombre }} · Estado: <strong>{{ e.estado }}</strong>
+        {% if e.motivo_estado %}({{ e.motivo_estado }}){% endif %}
+        · <a href="{{ url_for('productos.ficha', codigo=e.producto) }}">Ficha del comprador</a></li>
+    {% else %}
+      <li>Sin producto vendible (salida 0 kg).</li>
+    {% endif %}
+  </ul>
+
+  {% if session.rol == 'admin' %}
+  <table border="1" cellpadding="6">
+    <tr><th>Indicador</th><th>Valor</th><th>Fórmula</th></tr>
+    <tr><td>Merma</td>
+        <td>{{ '%.1f %%'|format(e.merma) if e.merma is not none else '—' }}</td>
+        <td>(entrada − salida) ÷ entrada × 100</td></tr>
+    <tr><td>Costo unitario</td>
+        <td>{{ '{:,.0f}'.format(e.costo_unitario).replace(',', '.') ~ ' COP/kg' if e.costo_unitario is not none else 'No calculable (salida 0)' }}</td>
+        <td>costo total ÷ salida vendible</td></tr>
+    <tr><td>Margen sobre venta</td>
+        <td>{{ '%.1f %%'|format(e.margen) if e.margen is not none else '—' }}</td>
+        <td>(precio − costo unitario) ÷ precio × 100</td></tr>
+  </table>
+  <p>Costo total: {{ '{:,.0f}'.format(e.costo_total).replace(',', '.') }} COP. Incluye: {{ e.costos_incluidos or '—' }}.
+     {% if e.precio_venta %}Precio de venta: {{ '{:,.0f}'.format(e.precio_venta).replace(',', '.') }} COP/kg.{% endif %}</p>
+
+    {% if e.producto %}
+    <form method="post" action="{{ url_for('productos.estado', codigo=e.producto) }}">
+      <input type="hidden" name="lote" value="{{ lote.codigo }}">
+      <label for="motivo-{{ e.producto }}">Motivo</label>
+      <input id="motivo-{{ e.producto }}" name="motivo">
+      <button name="estado" value="liberado">Liberar</button>
+      <button name="estado" value="bloqueado">Bloquear</button>
+    </form>
+    {% endif %}
+  {% endif %}
+  {% endfor %}
+
+  <h2>Alertas</h2>
+  <ul>
+    {% for a in alertas %}<li><strong>{{ a.regla }}</strong>: {{ a.causa }}</li>
+    {% else %}<li>Sin alertas.</li>{% endfor %}
+  </ul>
+  {% if session.rol == 'admin' %}
+  <p><a href="{{ url_for('auth.auditoria', q=lote.codigo) }}">Historial de cambios de {{ lote.codigo }}</a></p>
+  {% endif %}
+</body>
+</html>
